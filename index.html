@@ -31,7 +31,7 @@
         body.theme-bg-marinho .text-subtle { color: #93c5fd; }
         body.theme-bg-marinho .border-subtle { border-color: #1e3a8a; }
 
-        /* TEMAS DE COR DOS ÕCONES E DESTAQUES */
+        /* TEMAS DE COR DOS √çCONES E DESTAQUES */
         .theme-accent-azul .accent-text { color: #2563eb !important; }
         .theme-accent-azul .accent-bg { background-color: #2563eb !important; }
         .theme-accent-azul .accent-bg:hover { background-color: #1d4ed8 !important; }
@@ -70,7 +70,7 @@
 
     <div class="max-w-4xl mx-auto space-y-6 print-container">
         
-        <!-- CONTROLO DE PERSONALIZA«√O DE CORES -->
+        <!-- CONTROLO DE PERSONALIZA√á√ÉO DE CORES -->
         <div class="no-print card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-cloud text-sm accent-text"></i>
@@ -88,7 +88,7 @@
                     </select>
                 </div>
 
-                <!-- Seletor de Õcones/Destaques -->
+                <!-- Seletor de √çcones/Destaques -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-subtle">&Iacute;cones/Detalhes:</span>
                     <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
@@ -102,7 +102,7 @@
             </div>
         </div>
         
-        <!-- CABE«ALHO DA GR¡FICA -->
+        <!-- CABE√áALHO DA GR√ÅFICA -->
         <header class="card-bg p-6 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
@@ -114,7 +114,7 @@
             </button>
         </header>
 
-        <!-- FORMUL¡RIO DE NOVA VENDA -->
+        <!-- FORMUL√ÅRIO DE NOVA VENDA -->
         <section class="no-print card-bg p-6 rounded-2xl shadow-sm border">
             <h2 class="text-base font-bold mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-circle-plus accent-text"></i> Registar Nova Entrada
@@ -150,7 +150,7 @@
                     <div class="text-3xl font-black font-mono accent-text" id="totalMes">R$ 0,00</div>
                 </div>
 
-                <!-- Filtro de MÍs/Ano -->
+                <!-- Filtro de M√™s/Ano -->
                 <div class="no-print flex items-center gap-2">
                     <label class="text-xs font-bold text-subtle">M&ecirc;s de Consulta:</label>
                     <input type="month" id="filtroMes" onchange="renderizarVendas()" 
@@ -187,7 +187,7 @@
     </div>
 
     <script>
-        // CONFIGURA«√O DO FIREBASE (Chaves integradas da Gr·fica e Papelaria Elias & Tati)
+        // CONFIGURA√á√ÉO DO FIREBASE (Chaves integradas da Gr√°fica e Papelaria Elias & Tati)
         const firebaseConfig = {
             apiKey: "AIzaSyDzFALnnyZEbWrVOHcJ_z7i27aEbH-00qQ",
             authDomain: "grafica-elias-tati.firebaseapp.com",
@@ -230,8 +230,8 @@
                 });
                 renderizarVendas();
             }, (error) => {
-                console.error("Erro ao conectar ‡ nuvem:", error);
-                alert("Erro ao sincronizar com o Firebase. Verifica a tua ligaÁ„o.");
+                console.error("Erro ao conectar √† nuvem:", error);
+                alert("Erro ao sincronizar com o Firebase. Verifica a tua liga√ß√£o.");
             });
         }
 
@@ -328,3 +328,10 @@
         }
 
         function alterarDetalhes(cor) {
+            document.body.classList.remove('theme-accent-azul', 'theme-accent-rosa', 'theme-accent-amarelo', 'theme-accent-vinho', 'theme-accent-branco');
+            document.body.classList.add(`theme-accent-${cor}`);
+            localStorage.setItem('grafica_theme_accent', cor);
+        }
+    </script>
+</body>
+</html>
