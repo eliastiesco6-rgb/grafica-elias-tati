@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controlo de Entradas - Gr&aacute;fica e Papelaria Elias &amp; Tati</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SDKs do Firebase (Firestore em Nuvem) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* TEMAS DE FUNDO */
+        body.theme-bg-branco { background-color: #f8fafc; color: #1e293b; }
+        body.theme-bg-branco .card-bg { background-color: #ffffff; border-color: #e2e8f0; color: #1e293b; }
+        body.theme-bg-branco .input-bg { background-color: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+        body.theme-bg-branco .text-subtle { color: #64748b; }
+        body.theme-bg-branco .border-subtle { border-color: #f1f5f9; }
+
+        body.theme-bg-preto { background-color: #090d16; color: #f1f5f9; }
+        body.theme-bg-preto .card-bg { background-color: #111827; border-color: #1f2937; color: #f1f5f9; }
+        body.theme-bg-preto .input-bg { background-color: #1f2937; border-color: #374151; color: #ffffff; }
+        body.theme-bg-preto .text-subtle { color: #9ca3af; }
+        body.theme-bg-preto .border-subtle { border-color: #1f2937; }
+
+        body.theme-bg-marinho { background-color: #0b1329; color: #f1f5f9; }
+        body.theme-bg-marinho .card-bg { background-color: #172554; border-color: #1e3a8a; color: #f1f5f9; }
+        body.theme-bg-marinho .input-bg { background-color: #1e3a8a; border-color: #3b82f6; color: #ffffff; }
+        body.theme-bg-marinho .text-subtle { color: #93c5fd; }
+        body.theme-bg-marinho .border-subtle { border-color: #1e3a8a; }
+
+        /* TEMAS DE COR DOS ÍCONES E DESTAQUES */
+        .theme-accent-azul .accent-text { color: #2563eb !important; }
+        .theme-accent-azul .accent-bg { background-color: #2563eb !important; }
+        .theme-accent-azul .accent-bg:hover { background-color: #1d4ed8 !important; }
+        .theme-accent-azul .accent-ring:focus { --tw-ring-color: #2563eb !important; }
+
+        .theme-accent-rosa .accent-text { color: #ec4899 !important; }
+        .theme-accent-rosa .accent-bg { background-color: #ec4899 !important; }
+        .theme-accent-rosa .accent-bg:hover { background-color: #db2777 !important; }
+        .theme-accent-rosa .accent-ring:focus { --tw-ring-color: #ec4899 !important; }
+
+        .theme-accent-amarelo .accent-text { color: #eab308 !important; }
+        .theme-accent-amarelo .accent-bg { background-color: #eab308 !important; color: #000000 !important; }
+        .theme-accent-amarelo .accent-bg:hover { background-color: #ca8a04 !important; }
+        .theme-accent-amarelo .accent-ring:focus { --tw-ring-color: #eab308 !important; }
+
+        .theme-accent-vinho .accent-text { color: #881337 !important; }
+        .theme-accent-vinho .accent-bg { background-color: #881337 !important; }
+        .theme-accent-vinho .accent-bg:hover { background-color: #4c0519 !important; }
+        .theme-accent-vinho .accent-ring:focus { --tw-ring-color: #881337 !important; }
+
+        .theme-accent-branco .accent-text { color: #ffffff !important; }
+        .theme-accent-branco .accent-bg { background-color: #ffffff !important; color: #0f172a !important; }
+        .theme-accent-branco .accent-bg:hover { background-color: #e2e8f0 !important; }
+        .theme-accent-branco .accent-ring:focus { --tw-ring-color: #ffffff !important; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card-bg { background: white !important; border: none !important; box-shadow: none !important; }
+            .print-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .accent-text { color: black !important; }
+        }
+    </style>
+</head>
+<body class="theme-bg-branco theme-accent-azul min-h-screen font-sans p-4 sm:p-6 transition-colors duration-200">
+
+    <div class="max-w-4xl mx-auto space-y-6 print-container">
+        
+        <!-- CONTROLO DE PERSONALIZAÇÃO DE CORES -->
+        <div class="no-print card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cloud text-sm accent-text"></i>
+                <span>Sistema na Nuvem (Sincronizado)</span>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-4">
+                <!-- Seletor de Fundo -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-subtle">Fundo:</span>
+                    <select id="selectBg" onchange="alterarFundo(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
+                        <option value="branco">Branco</option>
+                        <option value="preto">Preto</option>
+                        <option value="marinho">Azul-marinho</option>
+                    </select>
+                </div>
+
+                <!-- Seletor de Ícones/Destaques -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-subtle">&Iacute;cones/Detalhes:</span>
+                    <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
+                        <option value="azul">Azul</option>
+                        <option value="rosa">Rosa</option>
+                        <option value="amarelo">Amarelo</option>
+                        <option value="vinho">Vinho</option>
+                        <option value="branco">Branco</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CABEÇALHO DA GRÁFICA -->
+        <header class="card-bg p-6 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
+                <p class="text-xs text-subtle font-medium">Relat&oacute;rio e Registo de Entradas em Tempo Real</p>
+            </div>
+            
+            <button onclick="window.print()" class="no-print accent-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Imprimir Relat&oacute;rio
+            </button>
+        </header>
+
+        <!-- FORMULÁRIO DE NOVA VENDA -->
+        <section class="no-print card-bg p-6 rounded-2xl shadow-sm border">
+            <h2 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-plus accent-text"></i> Registar Nova Entrada
+            </h2>
+            
+            <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-subtle mb-1">Valor do Produto (R$)</label>
+                    <input type="number" id="valorInput" step="0.01" min="0.01" placeholder="0.00" required
+                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-subtle mb-1">Obs / Produto Vendido</label>
+                    <input type="text" id="obsInput" placeholder="Ex: 100 cart&otilde;es de visita, Banner 1x1m, etc." required
+                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                </div>
+
+                <div class="sm:col-span-3 flex justify-end">
+                    <button type="submit" id="btnSalvar" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                        <span>Adicionar Entrada</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- RESUMO MENSAL E FILTROS -->
+        <section class="card-bg p-6 rounded-2xl shadow-sm border space-y-6">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-subtle border-b">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total Arrecadado</span>
+                    <div class="text-3xl font-black font-mono accent-text" id="totalMes">R$ 0,00</div>
+                </div>
+
+                <!-- Filtro de Mês/Ano -->
+                <div class="no-print flex items-center gap-2">
+                    <label class="text-xs font-bold text-subtle">M&ecirc;s de Consulta:</label>
+                    <input type="month" id="filtroMes" onchange="renderizarVendas()" 
+                           class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                </div>
+            </div>
+
+            <!-- TABELA DE VENDAS -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold" id="tituloTabela">Hist&oacute;rico de Entradas</h3>
+                    <span class="text-xs font-mono font-semibold text-subtle" id="qtdVendas">A carregar...</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-subtle border-b text-subtle text-xs uppercase">
+                                <th class="py-2.5 px-3">Data / Hora</th>
+                                <th class="py-2.5 px-3">Produto / Obs</th>
+                                <th class="py-2.5 px-3 text-right">Valor</th>
+                                <th class="py-2.5 px-3 text-center no-print">A&ccedil;&otilde;es</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCorpo" class="divide-y border-subtle font-medium">
+                            <!-- Linhas inseridas via Nuvem -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO DO FIREBASE (Chaves integradas da Gráfica e Papelaria Elias & Tati)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzFALnnyZEbWrVOHcJ_z7i27aEbH-00qQ",
+            authDomain: "grafica-elias-tati.firebaseapp.com",
+            projectId: "grafica-elias-tati",
+            storageBucket: "grafica-elias-tati.firebasestorage.app",
+            messagingSenderId: "697763021939",
+            appId: "1:697763021939:web:b2566fded236bd62611606"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let todasVendas = [];
+
+        window.onload = function() {
+            const savedBg = localStorage.getItem('grafica_theme_bg') || 'branco';
+            const savedAccent = localStorage.getItem('grafica_theme_accent') || 'azul';
+            
+            alterarFundo(savedBg);
+            alterarDetalhes(savedAccent);
+
+            document.getElementById('selectBg').value = savedBg;
+            document.getElementById('selectAccent').value = savedAccent;
+
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            document.getElementById('filtroMes').value = `${ano}-${mes}`;
+
+            // Inicia a escuta em tempo real da nuvem
+            ouvirNuvemEmTempoReal();
+        };
+
+        function ouvirNuvemEmTempoReal() {
+            db.collection("vendas").onSnapshot((snapshot) => {
+                todasVendas = [];
+                snapshot.forEach((doc) => {
+                    todasVendas.push({ id: doc.id, ...doc.data() });
+                });
+                renderizarVendas();
+            }, (error) => {
+                console.error("Erro ao conectar à nuvem:", error);
+                alert("Erro ao sincronizar com o Firebase. Verifica a tua ligação.");
+            });
+        }
+
+        async function registrarVenda(event) {
+            event.preventDefault();
+            const valor = parseFloat(document.getElementById('valorInput').value);
+            const obs = document.getElementById('obsInput').value.trim();
+
+            if (!valor || !obs) return;
+
+            const btnSalvar = document.getElementById('btnSalvar');
+            btnSalvar.disabled = true;
+            btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> A guardar...`;
+
+            try {
+                await db.collection("vendas").add({
+                    valor: valor,
+                    obs: obs,
+                    data: new Date().toISOString()
+                });
+
+                document.getElementById('valorInput').value = '';
+                document.getElementById('obsInput').value = '';
+                document.getElementById('valorInput').focus();
+            } catch (err) {
+                alert("Erro ao guardar na nuvem: " + err.message);
+            } finally {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = `<span>Adicionar Entrada</span>`;
+            }
+        }
+
+        async function removerVenda(id) {
+            if (confirm("Tem certeza que deseja apagar esta entrada?")) {
+                try {
+                    await db.collection("vendas").doc(id).delete();
+                } catch (err) {
+                    alert("Erro ao apagar: " + err.message);
+                }
+            }
+        }
+
+        function renderizarVendas() {
+            const mesSelecionado = document.getElementById('filtroMes').value;
+            const tabelaCorpo = document.getElementById('tabelaCorpo');
+            
+            const vendasFiltradas = todasVendas.filter(v => {
+                const dataVenda = new Date(v.data);
+                const ano = dataVenda.getFullYear();
+                const mes = String(dataVenda.getMonth() + 1).padStart(2, '0');
+                return `${ano}-${mes}` === mesSelecionado;
+            });
+
+            vendasFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            const total = vendasFiltradas.reduce((acc, v) => acc + v.valor, 0);
+            document.getElementById('totalMes').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('qtdVendas').innerText = `${vendasFiltradas.length} registo(s)`;
+
+            if (vendasFiltradas.length === 0) {
+                tabelaCorpo.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-subtle text-xs italic">
+                            Nenhuma entrada registada neste m&ecirc;s.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tabelaCorpo.innerHTML = vendasFiltradas.map(v => {
+                const d = new Date(v.data);
+                const dataFormatada = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} &agrave;s ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                
+                return `
+                    <tr class="border-subtle border-b hover:opacity-80 transition-opacity">
+                        <td class="py-3 px-3 text-xs text-subtle font-mono">${dataFormatada}</td>
+                        <td class="py-3 px-3 font-semibold">${v.obs}</td>
+                        <td class="py-3 px-3 text-right font-mono font-bold accent-text">R$ ${v.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="py-3 px-3 text-center no-print">
+                            <button onclick="removerVenda('${v.id}')" class="text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function alterarFundo(cor) {
+            document.body.classList.remove('theme-bg-branco', 'theme-bg-preto', 'theme-bg-marinho');
+            document.body.classList.add(`theme-bg-${cor}`);
+            localStorage.setItem('grafica_theme_bg', cor);
+        }
+
+        function alterarDetalhes(cor) {
