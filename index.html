@@ -2,8 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Controlo de Entradas - Gr&aacute;fica e Papelaria Elias &amp; Tati</title>
+
+    <!-- APP (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Gráfica E&T">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -60,6 +69,19 @@
 
         .hidden-app { display: none !important; }
 
+        /* Comportamento de app no celular */
+        html { -webkit-tap-highlight-color: transparent; }
+        body {
+            overscroll-behavior-y: contain;
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        input, select, button { touch-action: manipulation; }
+        @media (max-width: 640px) {
+            input, select { font-size: 16px !important; } /* evita o zoom automático ao digitar */
+            .btn-pag { padding-top: 0.75rem; padding-bottom: 0.75rem; flex: 1 1 40%; justify-content: center; }
+        }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
@@ -71,6 +93,11 @@
     </style>
 </head>
 <body class="theme-bg-branco theme-accent-azul min-h-screen font-sans p-4 sm:p-6 transition-colors duration-200">
+
+    <!-- AVISO DE SEM INTERNET -->
+    <div id="avisoOffline" class="hidden-app no-print max-w-4xl mx-auto mb-4 px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-bold text-center">
+        <i class="fa-solid fa-wifi"></i> Sem internet: as vendas ficam salvas no aparelho e sincronizam quando a conex&atilde;o voltar.
+    </div>
 
     <!-- ================= TELA DE LOGIN ================= -->
     <div id="telaLogin" class="hidden-app max-w-sm mx-auto mt-16">
@@ -131,6 +158,10 @@
                         <option value="branco">Branco</option>
                     </select>
                 </div>
+
+                <button id="btnInstalar" onclick="instalarApp()" class="hidden-app accent-bg text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5" title="Instalar como app">
+                    <i class="fa-solid fa-download"></i> Instalar app
+                </button>
 
                 <button onclick="sair()" class="text-subtle hover:text-red-500 transition-colors flex items-center gap-1.5" title="Sair">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
@@ -249,6 +280,42 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Modo offline: guarda os dados no aparelho e sincroniza quando a internet voltar
+        db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
+            console.warn('Modo offline indisponível:', err.code);
+        });
+
+        // ---------- APP (PWA) ----------
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('SW:', e); });
+            });
+        }
+
+        let eventoInstalar = null;
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            eventoInstalar = e;
+            document.getElementById('btnInstalar').classList.remove('hidden-app');
+        });
+        window.addEventListener('appinstalled', function () {
+            eventoInstalar = null;
+            document.getElementById('btnInstalar').classList.add('hidden-app');
+        });
+        async function instalarApp() {
+            if (!eventoInstalar) return;
+            eventoInstalar.prompt();
+            await eventoInstalar.userChoice;
+            eventoInstalar = null;
+            document.getElementById('btnInstalar').classList.add('hidden-app');
+        }
+
+        function atualizarAvisoOffline() {
+            document.getElementById('avisoOffline').classList.toggle('hidden-app', navigator.onLine);
+        }
+        window.addEventListener('online', atualizarAvisoOffline);
+        window.addEventListener('offline', atualizarAvisoOffline);
+
         const FORMAS_PAGAMENTO = [
             { id: 'pix',      nome: 'Pix',      icone: 'fa-qrcode' },
             { id: 'dinheiro', nome: 'Dinheiro', icone: 'fa-money-bill-wave' },
@@ -298,6 +365,7 @@
             document.getElementById('filtroMes').value =
                 `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
+            atualizarAvisoOffline();
             montarBotoesPagamento();
             const salvo = localStorage.getItem('grafica_pagamento');
             if (salvo && FORMAS_PAGAMENTO.some(f => f.id === salvo)) pagamentoSelecionado = salvo;
@@ -450,28 +518,25 @@
                 return;
             }
 
-            const btnSalvar = document.getElementById('btnSalvar');
-            btnSalvar.disabled = true;
-            btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> A guardar...';
-
-            try {
-                await db.collection('vendas').add({
-                    valor: Math.round(valor * 100) / 100,
-                    obs: obs,
-                    pagamento: pagamentoSelecionado,
-                    data: new Date().toISOString(),
-                    autor: (auth.currentUser && auth.currentUser.email) || ''
-                });
-
-                document.getElementById('valorInput').value = '';
-                document.getElementById('obsInput').value = '';
-                document.getElementById('valorInput').focus();
-            } catch (err) {
+            // Com o modo offline ligado, a venda aparece na hora e sobe para a nuvem quando houver internet.
+            // Por isso não esperamos a confirmação do servidor (offline ela só chegaria depois).
+            db.collection('vendas').add({
+                valor: Math.round(valor * 100) / 100,
+                obs: obs,
+                pagamento: pagamentoSelecionado,
+                data: new Date().toISOString(),
+                autor: (auth.currentUser && auth.currentUser.email) || ''
+            }).catch(function (err) {
                 alert('Erro ao guardar na nuvem: ' + err.message);
-            } finally {
-                btnSalvar.disabled = false;
-                btnSalvar.innerHTML = '<span>Adicionar Entrada</span>';
-            }
+            });
+
+            document.getElementById('valorInput').value = '';
+            document.getElementById('obsInput').value = '';
+            document.getElementById('valorInput').focus();
+
+            const btnSalvar = document.getElementById('btnSalvar');
+            btnSalvar.innerHTML = '<i class="fa-solid fa-check"></i> <span>Salvo!</span>';
+            setTimeout(function () { btnSalvar.innerHTML = '<span>Adicionar Entrada</span>'; }, 1200);
         }
 
         async function removerVenda(id) {
