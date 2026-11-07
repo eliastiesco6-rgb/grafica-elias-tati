@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Controlo de Entradas - Gr&aacute;fica e Papelaria Elias &amp; Tati</title>
+    <title>Controlo de Entradas - Gráfica e Papelaria Elias &amp; Tati</title>
 
     <!-- APP (PWA) -->
     <link rel="manifest" href="manifest.json">
@@ -13,6 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="Gráfica E&T">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -89,6 +90,8 @@
             .print-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
             .accent-text { color: black !important; }
             .text-subtle { color: #444 !important; }
+            body.print-caixa .nao-caixa { display: none !important; }
+            input { border: 1px solid #999 !important; background: white !important; color: black !important; }
         }
     </style>
 </head>
@@ -96,7 +99,7 @@
 
     <!-- AVISO DE SEM INTERNET -->
     <div id="avisoOffline" class="hidden-app no-print max-w-4xl mx-auto mb-4 px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-bold text-center">
-        <i class="fa-solid fa-wifi"></i> Sem internet: as vendas ficam salvas no aparelho e sincronizam quando a conex&atilde;o voltar.
+        <i class="fa-solid fa-wifi"></i> Sem internet: os registos ficam salvos no aparelho e sincronizam quando a conexão voltar.
     </div>
 
     <!-- ================= TELA DE LOGIN ================= -->
@@ -104,7 +107,7 @@
         <div class="card-bg p-6 rounded-2xl shadow-sm border space-y-5">
             <div class="text-center">
                 <i class="fa-solid fa-lock text-3xl accent-text mb-3"></i>
-                <h1 class="text-xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
+                <h1 class="text-xl font-black tracking-tight">Gráfica e Papelaria Elias &amp; Tati</h1>
                 <p class="text-xs text-subtle font-medium mt-1">Acesso restrito. Entre com o seu e-mail e senha.</p>
             </div>
 
@@ -128,10 +131,10 @@
     </div>
 
     <!-- ================= APLICAÇÃO ================= -->
-    <div id="telaApp" class="hidden-app max-w-4xl mx-auto space-y-6 print-container">
+    <div id="telaApp" class="hidden-app max-w-4xl mx-auto space-y-6 print-container" style="padding-bottom: 5.5rem;">
 
         <!-- CONTROLO DE PERSONALIZAÇÃO -->
-        <div class="no-print card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
+        <div class="no-print nao-caixa card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-cloud text-sm accent-text"></i>
                 <span>Sistema na Nuvem (Sincronizado)</span>
@@ -149,7 +152,7 @@
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                    <span class="text-subtle">&Iacute;cones/Detalhes:</span>
+                    <span class="text-subtle">Ícones/Detalhes:</span>
                     <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
                         <option value="azul">Azul</option>
                         <option value="rosa">Rosa</option>
@@ -172,81 +175,148 @@
         <!-- CABEÇALHO -->
         <header class="card-bg p-6 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h1 class="text-2xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
-                <p class="text-xs text-subtle font-medium">Relat&oacute;rio e Registo de Entradas em Tempo Real</p>
+                <h1 class="text-2xl font-black tracking-tight">Gráfica e Papelaria Elias &amp; Tati</h1>
+                <p class="text-xs text-subtle font-medium">Entradas, saídas e caixa em tempo real</p>
             </div>
 
             <button onclick="window.print()" class="no-print accent-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
-                <i class="fa-solid fa-print"></i> Imprimir Relat&oacute;rio
+                <i class="fa-solid fa-print"></i> Imprimir Relatório
             </button>
         </header>
 
-        <!-- FORMULÁRIO DE NOVA VENDA -->
-        <section class="no-print card-bg p-6 rounded-2xl shadow-sm border">
-            <h2 class="text-base font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-circle-plus accent-text"></i> Registar Nova Entrada
-            </h2>
+        <!-- RESUMO: HOJE E MÊS -->
+        <section class="nao-caixa card-bg p-5 rounded-2xl shadow-sm border space-y-5">
 
-            <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <div class="flex justify-between items-baseline mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Hoje</span>
+                    <span class="text-xs font-mono text-subtle" id="qtdHoje"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeEnt">R$ 0,00</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="hojeSai">R$ 0,00</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Saldo</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeSal">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-subtle pt-4">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Mês</span>
+                    <div class="no-print flex items-center gap-2">
+                        <label class="text-xs font-bold text-subtle">Mês de consulta:</label>
+                        <input type="month" id="filtroMes" onchange="trocarMes()"
+                               class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesEnt">R$ 0,00</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="mesSai">R$ 0,00</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase text-subtle">Lucro</div>
+                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesLuc">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs font-bold mt-3" id="resumoPagamento"></div>
+            </div>
+        </section>
+
+        <!-- ============ ABA: VENDAS ============ -->
+        <div id="aba-vendas" class="space-y-6">
+
+            <section class="no-print card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                <h2 class="text-base font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus accent-text"></i> Registar Venda
+                </h2>
+
                 <div>
-                    <label class="block text-xs font-bold text-subtle mb-1">Valor do Produto (R$)</label>
-                    <input type="text" inputmode="decimal" id="valorInput" placeholder="0,00" required autocomplete="off"
-                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
-                </div>
-
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-subtle mb-1">Obs / Produto Vendido</label>
-                    <input type="text" id="obsInput" placeholder="Ex: 100 cart&otilde;es de visita, Banner 1x1m, etc." required autocomplete="off"
-                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
-                </div>
-
-                <div class="sm:col-span-3">
                     <label class="block text-xs font-bold text-subtle mb-1">Forma de Pagamento</label>
-                    <div class="flex flex-wrap gap-2" id="grupoPagamento">
-                        <!-- botões inseridos via JS -->
+                    <div class="flex flex-wrap gap-2" id="grupoPagamento"></div>
+                </div>
+
+                <!-- PRODUTOS RÁPIDOS -->
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <label class="text-xs font-bold text-subtle">Produtos rápidos <span class="font-medium">(toque para registar)</span></label>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5 text-xs font-bold">
+                                <button type="button" onclick="mudarQtd(-1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Diminuir quantidade"><i class="fa-solid fa-minus"></i></button>
+                                <span id="qtdValor" class="font-mono w-8 text-center">1x</span>
+                                <button type="button" onclick="mudarQtd(1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Aumentar quantidade"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <button type="button" onclick="alternarPainelProdutos()" class="text-xs font-bold text-subtle flex items-center gap-1.5">
+                                <i class="fa-solid fa-gear"></i> Gerenciar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="gradeProdutos" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+
+                    <div id="semProdutos" class="hidden-app text-xs text-subtle text-center py-4 space-y-2">
+                        <p>Nenhum produto cadastrado ainda.</p>
+                        <button type="button" onclick="adicionarSugestoes()" class="accent-bg text-white font-bold px-3 py-2 rounded-lg">
+                            Adicionar sugestões (Impressão, Xerox, Plastificação)
+                        </button>
                     </div>
                 </div>
 
-                <div class="sm:col-span-3 flex justify-end">
-                    <button type="submit" id="btnSalvar" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
-                        <span>Adicionar Entrada</span>
-                    </button>
+                <!-- GERENCIAR PRODUTOS -->
+                <div id="painelProdutos" class="hidden-app border-t border-subtle pt-4 space-y-3">
+                    <h3 class="text-sm font-bold">Gerenciar produtos rápidos</h3>
+                    <div id="listaProdutos" class="space-y-1"></div>
+                    <form onsubmit="adicionarProduto(event)" class="grid grid-cols-5 gap-2">
+                        <input type="text" id="prodNome" placeholder="Nome (ex: Xerox)" required autocomplete="off"
+                               class="col-span-3 input-bg accent-ring border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2">
+                        <input type="text" inputmode="decimal" id="prodPreco" placeholder="0,00" required autocomplete="off"
+                               class="col-span-1 input-bg accent-ring border rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2">
+                        <button type="submit" class="col-span-1 accent-bg text-white rounded-xl text-sm font-bold" aria-label="Adicionar produto">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </form>
                 </div>
-            </form>
-        </section>
 
-        <!-- RESUMO: DIA + MÊS -->
-        <section class="card-bg p-6 rounded-2xl shadow-sm border space-y-6">
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-subtle border-b">
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total de Hoje</span>
-                    <div class="text-2xl font-black font-mono accent-text" id="totalHoje">R$ 0,00</div>
-                    <div class="text-xs text-subtle font-mono" id="qtdHoje"></div>
+                <!-- LANÇAMENTO MANUAL -->
+                <div class="border-t border-subtle pt-4">
+                    <label class="block text-xs font-bold text-subtle mb-2">Ou lance manualmente</label>
+                    <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-subtle mb-1">Valor do Produto (R$)</label>
+                            <input type="text" inputmode="decimal" id="valorInput" placeholder="0,00" required autocomplete="off"
+                                   class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-subtle mb-1">Obs / Produto Vendido</label>
+                            <input type="text" id="obsInput" placeholder="Ex: 100 cartões de visita, Banner 1x1m, etc." required autocomplete="off"
+                                   class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                        </div>
+                        <div class="sm:col-span-3 flex justify-end">
+                            <button type="submit" id="btnSalvar" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                                <span>Adicionar Entrada</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total Arrecadado no M&ecirc;s</span>
-                    <div class="text-3xl font-black font-mono accent-text" id="totalMes">R$ 0,00</div>
-                </div>
-            </div>
+            </section>
 
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div class="flex flex-wrap gap-2 text-xs font-bold" id="resumoPagamento"></div>
-
-                <div class="no-print flex items-center gap-2">
-                    <label class="text-xs font-bold text-subtle">M&ecirc;s de Consulta:</label>
-                    <input type="month" id="filtroMes" onchange="trocarMes()"
-                           class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
-                </div>
-            </div>
-
-            <!-- TABELA DE VENDAS -->
-            <div>
+            <section class="card-bg p-5 rounded-2xl shadow-sm border">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold">Hist&oacute;rico de Entradas</h3>
+                    <h3 class="text-sm font-bold">Histórico de Entradas</h3>
                     <span class="text-xs font-mono font-semibold text-subtle" id="qtdVendas">A carregar...</span>
                 </div>
-
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
                         <thead>
@@ -255,15 +325,142 @@
                                 <th class="py-2.5 px-3">Produto / Obs</th>
                                 <th class="py-2.5 px-3">Pagamento</th>
                                 <th class="py-2.5 px-3 text-right">Valor</th>
-                                <th class="py-2.5 px-3 text-center no-print">A&ccedil;&otilde;es</th>
+                                <th class="py-2.5 px-3 text-center no-print">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaCorpo" class="divide-y border-subtle font-medium"></tbody>
                     </table>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
+
+        <!-- ============ ABA: SAÍDAS ============ -->
+        <div id="aba-saidas" class="hidden-app space-y-6">
+
+            <section class="no-print card-bg p-5 rounded-2xl shadow-sm border">
+                <h2 class="text-base font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-minus" style="color:#dc2626"></i> Registar Saída / Despesa
+                </h2>
+
+                <form id="saidaForm" onsubmit="registrarSaida(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-subtle mb-1">Valor (R$)</label>
+                        <input type="text" inputmode="decimal" id="saidaValor" placeholder="0,00" required autocomplete="off"
+                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-subtle mb-1">Descrição</label>
+                        <input type="text" id="saidaObs" placeholder="Ex: Resma de papel A4, conta de luz, tinta..." required autocomplete="off"
+                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-subtle mb-1">Categoria</label>
+                        <select id="saidaCategoria" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-subtle mb-1">Saiu de onde?</label>
+                        <select id="saidaForma" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                            <option value="dinheiro">Dinheiro do caixa</option>
+                            <option value="outro">Pix / Cartão / Conta</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" id="btnSalvarSaida" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                            <span>Adicionar Saída</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold">Histórico de Saídas do mês</h3>
+                    <span class="text-xs font-mono font-semibold text-subtle" id="qtdSaidas">A carregar...</span>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs font-bold" id="resumoCategorias"></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-subtle border-b text-subtle text-xs uppercase">
+                                <th class="py-2.5 px-3">Data / Hora</th>
+                                <th class="py-2.5 px-3">Descrição</th>
+                                <th class="py-2.5 px-3">Categoria</th>
+                                <th class="py-2.5 px-3">Saiu de</th>
+                                <th class="py-2.5 px-3 text-right">Valor</th>
+                                <th class="py-2.5 px-3 text-center no-print">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaSaidas" class="divide-y border-subtle font-medium"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ ABA: CAIXA DO DIA ============ -->
+        <div id="aba-caixa" class="hidden-app space-y-6">
+            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                <div class="flex flex-wrap justify-between items-start gap-3">
+                    <div>
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-calculator accent-text"></i> Fechamento de Caixa
+                        </h2>
+                        <p class="text-xs text-subtle font-medium mt-1" id="caixaTitulo"></p>
+                        <p class="text-xs text-subtle font-mono" id="caixaContagem"></p>
+                    </div>
+                    <div class="no-print flex items-center gap-2">
+                        <input type="date" id="caixaData" onchange="trocarDiaCaixa()"
+                               class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                        <button onclick="imprimirCaixa()" class="accent-bg text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+
+                <div id="caixaResumo"></div>
+            </section>
+
+            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                <h3 class="text-sm font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-money-bill-wave accent-text"></i> Conferência do dinheiro na gaveta
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-subtle mb-1">Fundo de caixa (troco inicial)</label>
+                        <input type="text" inputmode="decimal" id="caixaFundo" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
+                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-subtle mb-1">Dinheiro contado agora</label>
+                        <input type="text" inputmode="decimal" id="caixaContado" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
+                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
+                    </div>
+                </div>
+                <div id="gavetaRes"></div>
+            </section>
+        </div>
     </div>
+
+    <!-- AVISO COM "DESFAZER" -->
+    <div id="toast" class="hidden-app no-print fixed left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-lg flex items-center justify-between gap-3"
+         style="bottom: calc(4.75rem + env(safe-area-inset-bottom));">
+        <span id="toastTexto"></span>
+        <button id="toastDesfazer" type="button" onclick="desfazerToast()" class="text-amber-300 font-black uppercase text-xs">Desfazer</button>
+    </div>
+
+    <!-- BARRA DE ABAS (parte de baixo, estilo app) -->
+    <nav id="navAbas" class="hidden-app no-print fixed bottom-0 inset-x-0 z-40 card-bg border-t" style="padding-bottom: env(safe-area-inset-bottom);">
+        <div class="max-w-4xl mx-auto grid grid-cols-3">
+            <button type="button" data-aba="vendas" onclick="trocarAba('vendas')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
+                <i class="fa-solid fa-cash-register text-lg"></i> Vendas
+            </button>
+            <button type="button" data-aba="saidas" onclick="trocarAba('saidas')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
+                <i class="fa-solid fa-arrow-trend-down text-lg"></i> Saídas
+            </button>
+            <button type="button" data-aba="caixa" onclick="trocarAba('caixa')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
+                <i class="fa-solid fa-calculator text-lg"></i> Caixa
+            </button>
+        </div>
+    </nav>
 
     <script>
         // CONFIGURAÇÃO DO FIREBASE
@@ -316,18 +513,37 @@
         window.addEventListener('online', atualizarAvisoOffline);
         window.addEventListener('offline', atualizarAvisoOffline);
 
+        // ---------- CONSTANTES ----------
         const FORMAS_PAGAMENTO = [
             { id: 'pix',      nome: 'Pix',      icone: 'fa-qrcode' },
             { id: 'dinheiro', nome: 'Dinheiro', icone: 'fa-money-bill-wave' },
-            { id: 'cartao',   nome: 'Cart\u00e3o', icone: 'fa-credit-card' },
+            { id: 'cartao',   nome: 'Cartão',   icone: 'fa-credit-card' },
             { id: 'fiado',    nome: 'Fiado',    icone: 'fa-handshake' }
         ];
 
-        let vendasMes = [];
-        let vendasHoje = [];
+        const CATEGORIAS_SAIDA = [
+            { id: 'material',   nome: 'Material (papel, tinta)' },
+            { id: 'contas',     nome: 'Contas (luz, água, internet)' },
+            { id: 'pessoal',    nome: 'Retirada / Pagamento' },
+            { id: 'manutencao', nome: 'Manutenção' },
+            { id: 'outros',     nome: 'Outros' }
+        ];
+
+        // ---------- ESTADO ----------
+        let vendasMes = [], saidasMes = [];
+        let vendasHoje = [], saidasHoje = [];
+        let vendasDia = [], saidasDia = [];
+        let produtos = [];
         let pagamentoSelecionado = 'pix';
-        let unsubMes = null;
-        let unsubHoje = null;
+        let qtd = 1;
+        let abaAtual = 'vendas';
+        let hojeChave = '';
+        let diaCaixa = '';
+        let caixaCalc = null;
+        const unsubs = {};
+        const errosMostrados = new Set();
+        let toastRef = null;
+        let toastTimer = null;
 
         // ---------- UTILITÁRIOS ----------
         function escapeHtml(texto) {
@@ -339,6 +555,8 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function pad(n) { return String(n).padStart(2, '0'); }
+
         function toCentavos(valor) {
             return Math.round((Number(valor) || 0) * 100);
         }
@@ -347,9 +565,51 @@
             return 'R$ ' + (centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        // Aceita "12,50", "1.234,56" e também "3.50"
+        function parseValor(texto) {
+            let t = String(texto == null ? '' : texto).trim().replace(/\s|R\$/g, '');
+            if (t.indexOf(',') !== -1) t = t.replace(/\./g, '').replace(',', '.');
+            const n = parseFloat(t);
+            return isFinite(n) ? n : NaN;
+        }
+
+        function somaCent(lista) {
+            return lista.reduce(function (acc, v) { return acc + toCentavos(v.valor); }, 0);
+        }
+
         function nomePagamento(id) {
-            const f = FORMAS_PAGAMENTO.find(x => x.id === id);
-            return f ? f.nome : '\u2014';
+            const f = FORMAS_PAGAMENTO.find(function (x) { return x.id === id; });
+            return f ? f.nome : '—';
+        }
+
+        function nomeCategoria(id) {
+            const c = CATEGORIAS_SAIDA.find(function (x) { return x.id === id; });
+            return c ? c.nome : 'Outros';
+        }
+
+        function chaveData(dt) {
+            return dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate());
+        }
+
+        function isoInicioDia(chave) {
+            const p = chave.split('-').map(Number);
+            return new Date(p[0], p[1] - 1, p[2]).toISOString();
+        }
+
+        function isoProximoDia(chave) {
+            const p = chave.split('-').map(Number);
+            return new Date(p[0], p[1] - 1, p[2] + 1).toISOString();
+        }
+
+        function formatarDataHora(iso) {
+            const d = new Date(iso);
+            return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' às ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function corSaldo(id, centavos) {
+            const el = document.getElementById(id);
+            el.textContent = formatarReais(centavos);
+            el.style.color = centavos < 0 ? '#dc2626' : '';
         }
 
         // ---------- INICIALIZAÇÃO ----------
@@ -362,29 +622,73 @@
             document.getElementById('selectAccent').value = savedAccent;
 
             const hoje = new Date();
-            document.getElementById('filtroMes').value =
-                `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+            hojeChave = chaveData(hoje);
+            diaCaixa = hojeChave;
+            document.getElementById('filtroMes').value = hoje.getFullYear() + '-' + pad(hoje.getMonth() + 1);
+            document.getElementById('caixaData').value = diaCaixa;
+            try { document.getElementById('caixaFundo').value = localStorage.getItem('grafica_fundo') || ''; } catch (e) {}
+
+            document.getElementById('saidaCategoria').innerHTML = CATEGORIAS_SAIDA.map(function (c) {
+                return '<option value="' + c.id + '">' + escapeHtml(c.nome) + '</option>';
+            }).join('');
 
             atualizarAvisoOffline();
             montarBotoesPagamento();
             const salvo = localStorage.getItem('grafica_pagamento');
-            if (salvo && FORMAS_PAGAMENTO.some(f => f.id === salvo)) pagamentoSelecionado = salvo;
+            if (salvo && FORMAS_PAGAMENTO.some(function (f) { return f.id === salvo; })) pagamentoSelecionado = salvo;
             atualizarBotoesPagamento();
 
-            // Controla o que aparece conforme o login
+            let abaSalva = 'vendas';
+            try { abaSalva = localStorage.getItem('grafica_aba') || 'vendas'; } catch (e) {}
+            trocarAba(['vendas', 'saidas', 'caixa'].indexOf(abaSalva) >= 0 ? abaSalva : 'vendas');
+
+            setInterval(verificarVirada, 60000);
+            document.addEventListener('visibilitychange', function () { if (!document.hidden) verificarVirada(); });
+
             auth.onAuthStateChanged(function (user) {
                 if (user) {
                     document.getElementById('telaLogin').classList.add('hidden-app');
                     document.getElementById('telaApp').classList.remove('hidden-app');
-                    document.getElementById('emailLogado').textContent = '\u2022 ' + (user.email || '');
+                    document.getElementById('navAbas').classList.remove('hidden-app');
+                    document.getElementById('emailLogado').textContent = '• ' + (user.email || '');
                     iniciarEscutas();
                 } else {
                     pararEscutas();
                     document.getElementById('telaApp').classList.add('hidden-app');
+                    document.getElementById('navAbas').classList.add('hidden-app');
+                    document.getElementById('toast').classList.add('hidden-app');
                     document.getElementById('telaLogin').classList.remove('hidden-app');
                 }
             });
         };
+
+        // Se o app ficar aberto de um dia para o outro, passa a acompanhar o novo dia
+        function verificarVirada() {
+            const agora = chaveData(new Date());
+            if (!hojeChave || agora === hojeChave) return;
+            const seguia = (diaCaixa === hojeChave);
+            hojeChave = agora;
+            if (seguia) {
+                diaCaixa = hojeChave;
+                document.getElementById('caixaData').value = diaCaixa;
+            }
+            if (auth.currentUser) { escutarHoje(); escutarDia(); }
+        }
+
+        // ---------- ABAS ----------
+        function trocarAba(aba) {
+            abaAtual = aba;
+            ['vendas', 'saidas', 'caixa'].forEach(function (a) {
+                document.getElementById('aba-' + a).classList.toggle('hidden-app', a !== aba);
+            });
+            document.querySelectorAll('.aba-btn').forEach(function (b) {
+                const ativo = b.dataset.aba === aba;
+                b.classList.toggle('accent-text', ativo);
+                b.classList.toggle('text-subtle', !ativo);
+            });
+            try { localStorage.setItem('grafica_aba', aba); } catch (e) {}
+            window.scrollTo(0, 0);
+        }
 
         // ---------- LOGIN ----------
         async function fazerLogin(event) {
@@ -406,9 +710,9 @@
                     'auth/invalid-credential': 'E-mail ou senha incorretos.',
                     'auth/wrong-password': 'E-mail ou senha incorretos.',
                     'auth/user-not-found': 'E-mail ou senha incorretos.',
-                    'auth/invalid-email': 'E-mail inv\u00e1lido.',
+                    'auth/invalid-email': 'E-mail inválido.',
                     'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente de novo.',
-                    'auth/network-request-failed': 'Sem conex\u00e3o com a internet.'
+                    'auth/network-request-failed': 'Sem conexão com a internet.'
                 };
                 erro.textContent = msgs[err.code] || ('Erro ao entrar: ' + err.message);
                 erro.classList.remove('hidden-app');
@@ -423,73 +727,109 @@
         }
 
         // ---------- ESCUTA EM TEMPO REAL ----------
+        function cancelar(chave) {
+            if (unsubs[chave]) { unsubs[chave](); unsubs[chave] = null; }
+        }
+
+        function tratarErro(colecao) {
+            return function (error) {
+                console.error('Erro em ' + colecao + ':', error);
+                if (errosMostrados.has(colecao)) return;
+                errosMostrados.add(colecao);
+                if (error.code === 'permission-denied') {
+                    alert('Sem permissão para acessar "' + colecao + '". Confira as Regras do Firestore (a coleção precisa estar liberada para usuários logados) ou saia e entre novamente.');
+                } else {
+                    alert('Erro ao sincronizar "' + colecao + '" com o Firebase. Verifique a ligação.');
+                }
+            };
+        }
+
+        function escutar(colecao, inicioISO, fimISO, aoReceber) {
+            let q = db.collection(colecao).where('data', '>=', inicioISO);
+            if (fimISO) q = q.where('data', '<', fimISO);
+            return q.onSnapshot(function (snap) {
+                errosMostrados.delete(colecao);
+                aoReceber(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+            }, tratarErro(colecao));
+        }
+
         function iniciarEscutas() {
             pararEscutas();
             escutarMes();
             escutarHoje();
+            escutarDia();
+            escutarProdutos();
         }
 
         function pararEscutas() {
-            if (unsubMes) { unsubMes(); unsubMes = null; }
-            if (unsubHoje) { unsubHoje(); unsubHoje = null; }
-            vendasMes = [];
-            vendasHoje = [];
-        }
-
-        function tratarErroNuvem(error) {
-            console.error('Erro na nuvem:', error);
-            if (error.code === 'permission-denied') {
-                alert('Sem permiss\u00e3o para acessar os dados. Saia e entre novamente.');
-            } else {
-                alert('Erro ao sincronizar com o Firebase. Verifique a liga\u00e7\u00e3o.');
-            }
+            Object.keys(unsubs).forEach(cancelar);
+            vendasMes = []; saidasMes = [];
+            vendasHoje = []; saidasHoje = [];
+            vendasDia = []; saidasDia = [];
+            produtos = [];
         }
 
         function escutarMes() {
-            if (unsubMes) { unsubMes(); unsubMes = null; }
+            cancelar('vMes'); cancelar('sMes');
             const valor = document.getElementById('filtroMes').value;
             if (!valor) return;
-            const [ano, mes] = valor.split('-').map(Number);
-            const inicio = new Date(ano, mes - 1, 1).toISOString();
-            const fim = new Date(ano, mes, 1).toISOString();
-
-            unsubMes = db.collection('vendas')
-                .where('data', '>=', inicio)
-                .where('data', '<', fim)
-                .onSnapshot(function (snapshot) {
-                    vendasMes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderizarVendas();
-                }, tratarErroNuvem);
+            const p = valor.split('-').map(Number);
+            const inicio = new Date(p[0], p[1] - 1, 1).toISOString();
+            const fim = new Date(p[0], p[1], 1).toISOString();
+            unsubs.vMes = escutar('vendas', inicio, fim, function (l) { vendasMes = l; renderMes(); });
+            unsubs.sMes = escutar('saidas', inicio, fim, function (l) { saidasMes = l; renderMes(); });
         }
 
         function escutarHoje() {
-            if (unsubHoje) { unsubHoje(); unsubHoje = null; }
-            const agora = new Date();
-            const inicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).toISOString();
+            cancelar('vHoje'); cancelar('sHoje');
+            const inicio = isoInicioDia(hojeChave);
+            unsubs.vHoje = escutar('vendas', inicio, null, function (l) { vendasHoje = l; renderResumoHoje(); renderCaixa(); });
+            unsubs.sHoje = escutar('saidas', inicio, null, function (l) { saidasHoje = l; renderResumoHoje(); renderCaixa(); });
+        }
 
-            unsubHoje = db.collection('vendas')
-                .where('data', '>=', inicio)
-                .onSnapshot(function (snapshot) {
-                    vendasHoje = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderizarResumoHoje();
-                }, tratarErroNuvem);
+        // Dia escolhido no fechamento de caixa (se for hoje, reaproveita os dados de hoje)
+        function escutarDia() {
+            cancelar('vDia'); cancelar('sDia');
+            vendasDia = []; saidasDia = [];
+            if (diaCaixa !== hojeChave) {
+                const ini = isoInicioDia(diaCaixa), fim = isoProximoDia(diaCaixa);
+                unsubs.vDia = escutar('vendas', ini, fim, function (l) { vendasDia = l; renderCaixa(); });
+                unsubs.sDia = escutar('saidas', ini, fim, function (l) { saidasDia = l; renderCaixa(); });
+            }
+            renderCaixa();
+        }
+
+        function escutarProdutos() {
+            cancelar('prod');
+            unsubs.prod = db.collection('produtos').onSnapshot(function (snap) {
+                errosMostrados.delete('produtos');
+                produtos = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+                    .sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), 'pt-BR'); });
+                renderProdutos();
+            }, tratarErro('produtos'));
         }
 
         function trocarMes() {
-            vendasMes = [];
-            renderizarVendas();
+            vendasMes = []; saidasMes = [];
+            renderMes();
             escutarMes();
+        }
+
+        function trocarDiaCaixa() {
+            const v = document.getElementById('caixaData').value;
+            diaCaixa = v || hojeChave;
+            if (!v) document.getElementById('caixaData').value = diaCaixa;
+            document.getElementById('caixaContado').value = '';
+            escutarDia();
         }
 
         // ---------- PAGAMENTO ----------
         function montarBotoesPagamento() {
-            const grupo = document.getElementById('grupoPagamento');
-            grupo.innerHTML = FORMAS_PAGAMENTO.map(f => `
-                <button type="button" data-pag="${f.id}" onclick="selecionarPagamento('${f.id}')"
-                        class="btn-pag input-bg border rounded-xl px-3.5 py-2 text-xs font-bold flex items-center gap-2 transition-all">
-                    <i class="fa-solid ${f.icone}"></i> ${f.nome}
-                </button>
-            `).join('');
+            document.getElementById('grupoPagamento').innerHTML = FORMAS_PAGAMENTO.map(function (f) {
+                return '<button type="button" data-pag="' + f.id + '" onclick="selecionarPagamento(\'' + f.id + '\')" ' +
+                    'class="btn-pag input-bg border rounded-xl px-3.5 py-2 text-xs font-bold flex items-center gap-2 transition-all">' +
+                    '<i class="fa-solid ' + f.icone + '"></i> ' + f.nome + '</button>';
+            }).join('');
         }
 
         function selecionarPagamento(id) {
@@ -499,27 +839,46 @@
         }
 
         function atualizarBotoesPagamento() {
-            document.querySelectorAll('.btn-pag').forEach(btn => {
+            document.querySelectorAll('.btn-pag').forEach(function (btn) {
                 const ativo = btn.dataset.pag === pagamentoSelecionado;
                 btn.classList.toggle('accent-bg', ativo);
                 btn.classList.toggle('text-white', ativo);
             });
         }
 
-        // ---------- REGISTRAR / REMOVER ----------
-        async function registrarVenda(event) {
+        // ---------- AVISO COM DESFAZER ----------
+        function mostrarToast(texto, desfazer) {
+            toastRef = desfazer || null;
+            document.getElementById('toastTexto').textContent = texto;
+            document.getElementById('toastDesfazer').classList.toggle('hidden-app', !desfazer);
+            document.getElementById('toast').classList.remove('hidden-app');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(esconderToast, 6000);
+        }
+
+        function esconderToast() {
+            document.getElementById('toast').classList.add('hidden-app');
+            toastRef = null;
+        }
+
+        function desfazerToast() {
+            if (toastRef) { try { toastRef(); } catch (e) {} }
+            esconderToast();
+        }
+
+        // ---------- VENDAS ----------
+        // Com o modo offline ligado, o registo aparece na hora e sobe para a nuvem quando houver internet.
+        // Por isso não esperamos a confirmação do servidor (offline ela só chegaria depois).
+        function registrarVenda(event) {
             event.preventDefault();
-            const texto = document.getElementById('valorInput').value.trim().replace(/\./g, '').replace(',', '.');
-            const valor = parseFloat(texto);
+            const valor = parseValor(document.getElementById('valorInput').value);
             const obs = document.getElementById('obsInput').value.trim();
 
             if (!isFinite(valor) || valor <= 0 || !obs) {
-                alert('Informe um valor v\u00e1lido (ex: 12,50) e a descri\u00e7\u00e3o.');
+                alert('Informe um valor válido (ex: 12,50) e a descrição.');
                 return;
             }
 
-            // Com o modo offline ligado, a venda aparece na hora e sobe para a nuvem quando houver internet.
-            // Por isso não esperamos a confirmação do servidor (offline ela só chegaria depois).
             db.collection('vendas').add({
                 valor: Math.round(valor * 100) / 100,
                 obs: obs,
@@ -534,91 +893,361 @@
             document.getElementById('obsInput').value = '';
             document.getElementById('valorInput').focus();
 
-            const btnSalvar = document.getElementById('btnSalvar');
-            btnSalvar.innerHTML = '<i class="fa-solid fa-check"></i> <span>Salvo!</span>';
-            setTimeout(function () { btnSalvar.innerHTML = '<span>Adicionar Entrada</span>'; }, 1200);
+            const btn = document.getElementById('btnSalvar');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Salvo!</span>';
+            setTimeout(function () { btn.innerHTML = '<span>Adicionar Entrada</span>'; }, 1200);
         }
 
-        async function removerVenda(id) {
-            if (confirm('Tem certeza que deseja apagar esta entrada?')) {
-                try {
-                    await db.collection('vendas').doc(id).delete();
-                } catch (err) {
+        function mudarQtd(delta) {
+            qtd = Math.min(99, Math.max(1, qtd + delta));
+            document.getElementById('qtdValor').textContent = qtd + 'x';
+        }
+
+        function venderRapido(id) {
+            const p = produtos.find(function (x) { return x.id === id; });
+            if (!p) return;
+            const q = qtd;
+            const centavos = toCentavos(p.preco) * q;
+            const obs = q > 1 ? (q + 'x ' + p.nome) : p.nome;
+            const ref = db.collection('vendas').doc();
+
+            ref.set({
+                valor: centavos / 100,
+                obs: obs,
+                pagamento: pagamentoSelecionado,
+                data: new Date().toISOString(),
+                autor: (auth.currentUser && auth.currentUser.email) || ''
+            }).catch(function (err) {
+                alert('Erro ao guardar na nuvem: ' + err.message);
+            });
+
+            mostrarToast('✓ ' + obs + ' · ' + formatarReais(centavos) + ' · ' + nomePagamento(pagamentoSelecionado), function () {
+                ref.delete().catch(function (err) { alert('Erro ao desfazer: ' + err.message); });
+            });
+
+            qtd = 1;
+            document.getElementById('qtdValor').textContent = '1x';
+        }
+
+        // ---------- PRODUTOS RÁPIDOS ----------
+        function alternarPainelProdutos() {
+            document.getElementById('painelProdutos').classList.toggle('hidden-app');
+        }
+
+        function adicionarProduto(event) {
+            event.preventDefault();
+            const nome = document.getElementById('prodNome').value.trim();
+            const preco = parseValor(document.getElementById('prodPreco').value);
+            if (!nome || !isFinite(preco) || preco <= 0) {
+                alert('Informe o nome e um preço válido (ex: 0,80).');
+                return;
+            }
+            db.collection('produtos').add({
+                nome: nome,
+                preco: Math.round(preco * 100) / 100,
+                criado: new Date().toISOString()
+            }).catch(function (err) { alert('Erro ao guardar o produto: ' + err.message); });
+            document.getElementById('prodNome').value = '';
+            document.getElementById('prodPreco').value = '';
+            document.getElementById('prodNome').focus();
+        }
+
+        function adicionarSugestoes() {
+            const batch = db.batch();
+            [['Impressão', 3], ['Xerox', 0.8], ['Impressão + plastificação', 5]].forEach(function (s) {
+                batch.set(db.collection('produtos').doc(), { nome: s[0], preco: s[1], criado: new Date().toISOString() });
+            });
+            batch.commit().catch(function (err) { alert('Erro ao adicionar sugestões: ' + err.message); });
+        }
+
+        function editarProduto(id) {
+            const p = produtos.find(function (x) { return x.id === id; });
+            if (!p) return;
+            const nome = prompt('Nome do produto:', p.nome);
+            if (nome === null) return;
+            const txt = prompt('Preço (R$):', Number(p.preco).toFixed(2).replace('.', ','));
+            if (txt === null) return;
+            const preco = parseValor(txt);
+            if (!nome.trim() || !isFinite(preco) || preco <= 0) {
+                alert('Nome ou preço inválido.');
+                return;
+            }
+            db.collection('produtos').doc(id).update({ nome: nome.trim(), preco: Math.round(preco * 100) / 100 })
+                .catch(function (err) { alert('Erro ao editar: ' + err.message); });
+        }
+
+        function excluirProduto(id) {
+            const p = produtos.find(function (x) { return x.id === id; });
+            if (!p) return;
+            if (confirm('Remover o produto "' + p.nome + '" dos botões rápidos? (As vendas já registadas não mudam.)')) {
+                db.collection('produtos').doc(id).delete().catch(function (err) { alert('Erro ao remover: ' + err.message); });
+            }
+        }
+
+        function renderProdutos() {
+            const grade = document.getElementById('gradeProdutos');
+            const vazio = produtos.length === 0;
+            document.getElementById('semProdutos').classList.toggle('hidden-app', !vazio);
+
+            grade.innerHTML = produtos.map(function (p) {
+                return '<button type="button" data-id="' + escapeHtml(p.id) + '" class="btn-prod input-bg border rounded-xl px-3 py-3 text-left active:scale-95 transition-transform">' +
+                    '<div class="text-sm font-bold leading-tight">' + escapeHtml(p.nome) + '</div>' +
+                    '<div class="text-xs font-mono font-bold accent-text mt-0.5">' + formatarReais(toCentavos(p.preco)) + '</div>' +
+                    '</button>';
+            }).join('');
+
+            document.getElementById('listaProdutos').innerHTML = produtos.map(function (p) {
+                return '<div class="flex items-center justify-between gap-2 py-1.5 border-b border-subtle text-sm">' +
+                    '<span class="font-semibold truncate">' + escapeHtml(p.nome) + '</span>' +
+                    '<span class="flex items-center gap-3 shrink-0">' +
+                    '<span class="font-mono text-xs text-subtle">' + formatarReais(toCentavos(p.preco)) + '</span>' +
+                    '<button type="button" data-id="' + escapeHtml(p.id) + '" class="btn-prod-edit text-subtle p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>' +
+                    '<button type="button" data-id="' + escapeHtml(p.id) + '" class="btn-prod-del text-subtle hover:text-red-500 p-1" title="Remover"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</span></div>';
+            }).join('');
+        }
+
+        // ---------- SAÍDAS ----------
+        function registrarSaida(event) {
+            event.preventDefault();
+            const valor = parseValor(document.getElementById('saidaValor').value);
+            const obs = document.getElementById('saidaObs').value.trim();
+
+            if (!isFinite(valor) || valor <= 0 || !obs) {
+                alert('Informe um valor válido (ex: 45,90) e a descrição.');
+                return;
+            }
+
+            db.collection('saidas').add({
+                valor: Math.round(valor * 100) / 100,
+                obs: obs,
+                categoria: document.getElementById('saidaCategoria').value,
+                forma: document.getElementById('saidaForma').value,
+                data: new Date().toISOString(),
+                autor: (auth.currentUser && auth.currentUser.email) || ''
+            }).catch(function (err) {
+                alert('Erro ao guardar a saída: ' + err.message);
+            });
+
+            document.getElementById('saidaValor').value = '';
+            document.getElementById('saidaObs').value = '';
+            document.getElementById('saidaValor').focus();
+
+            const btn = document.getElementById('btnSalvarSaida');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Salvo!</span>';
+            setTimeout(function () { btn.innerHTML = '<span>Adicionar Saída</span>'; }, 1200);
+        }
+
+        function removerDoc(colecao, id) {
+            const rotulo = colecao === 'saidas' ? 'saída' : 'entrada';
+            if (confirm('Tem certeza que deseja apagar esta ' + rotulo + '?')) {
+                db.collection(colecao).doc(id).delete().catch(function (err) {
                     alert('Erro ao apagar: ' + err.message);
-                }
+                });
             }
         }
 
         // ---------- RENDERIZAÇÃO ----------
-        function renderizarResumoHoje() {
-            const total = vendasHoje.reduce((acc, v) => acc + toCentavos(v.valor), 0);
-            document.getElementById('totalHoje').textContent = formatarReais(total);
-            document.getElementById('qtdHoje').textContent = vendasHoje.length + ' venda(s) hoje';
+        function renderResumoHoje() {
+            const ent = somaCent(vendasHoje);
+            const sai = somaCent(saidasHoje);
+            document.getElementById('hojeEnt').textContent = formatarReais(ent);
+            document.getElementById('hojeSai').textContent = formatarReais(sai);
+            corSaldo('hojeSal', ent - sai);
+            document.getElementById('qtdHoje').textContent = vendasHoje.length + ' venda(s) · ' + saidasHoje.length + ' saída(s)';
         }
 
-        function renderizarVendas() {
-            const tabelaCorpo = document.getElementById('tabelaCorpo');
-            const lista = vendasMes.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+        function renderMes() {
+            const ent = somaCent(vendasMes);
+            const sai = somaCent(saidasMes);
+            document.getElementById('mesEnt').textContent = formatarReais(ent);
+            document.getElementById('mesSai').textContent = formatarReais(sai);
+            corSaldo('mesLuc', ent - sai);
 
-            const total = lista.reduce((acc, v) => acc + toCentavos(v.valor), 0);
-            document.getElementById('totalMes').textContent = formatarReais(total);
-            document.getElementById('qtdVendas').textContent = lista.length + ' registo(s)';
-
-            // Resumo por forma de pagamento
             const porPag = {};
-            lista.forEach(v => {
+            vendasMes.forEach(function (v) {
                 const k = v.pagamento || 'outro';
                 porPag[k] = (porPag[k] || 0) + toCentavos(v.valor);
             });
-            document.getElementById('resumoPagamento').innerHTML = Object.keys(porPag).map(k => {
+            document.getElementById('resumoPagamento').innerHTML = Object.keys(porPag).map(function (k) {
                 const nome = k === 'outro' ? 'Sem forma' : nomePagamento(k);
-                return `<span class="input-bg border rounded-lg px-2.5 py-1">${escapeHtml(nome)}: <span class="font-mono">${formatarReais(porPag[k])}</span></span>`;
+                return '<span class="input-bg border rounded-lg px-2.5 py-1">' + escapeHtml(nome) + ': <span class="font-mono">' + formatarReais(porPag[k]) + '</span></span>';
             }).join('');
 
+            renderEntradas();
+            renderSaidas();
+        }
+
+        function renderEntradas() {
+            const tbody = document.getElementById('tabelaCorpo');
+            const lista = vendasMes.slice().sort(function (a, b) { return new Date(b.data) - new Date(a.data); });
+            document.getElementById('qtdVendas').textContent = lista.length + ' registo(s)';
+
             if (lista.length === 0) {
-                tabelaCorpo.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-subtle text-xs italic">
-                            Nenhuma entrada registada neste m&ecirc;s.
-                        </td>
-                    </tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-subtle text-xs italic">Nenhuma entrada registada neste mês.</td></tr>';
                 return;
             }
 
-            tabelaCorpo.innerHTML = lista.map(v => {
-                const d = new Date(v.data);
-                const dataFormatada = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} &agrave;s ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-
-                return `
-                    <tr class="border-subtle border-b hover:opacity-80 transition-opacity">
-                        <td class="py-3 px-3 text-xs text-subtle font-mono">${dataFormatada}</td>
-                        <td class="py-3 px-3 font-semibold">${escapeHtml(v.obs)}</td>
-                        <td class="py-3 px-3 text-xs text-subtle">${escapeHtml(nomePagamento(v.pagamento))}</td>
-                        <td class="py-3 px-3 text-right font-mono font-bold accent-text">${formatarReais(toCentavos(v.valor))}</td>
-                        <td class="py-3 px-3 text-center no-print">
-                            <button data-id="${escapeHtml(v.id)}" class="btn-excluir text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>`;
+            tbody.innerHTML = lista.map(function (v) {
+                return '<tr class="border-subtle border-b hover:opacity-80 transition-opacity">' +
+                    '<td class="py-3 px-3 text-xs text-subtle font-mono">' + formatarDataHora(v.data) + '</td>' +
+                    '<td class="py-3 px-3 font-semibold">' + escapeHtml(v.obs) + '</td>' +
+                    '<td class="py-3 px-3 text-xs text-subtle">' + escapeHtml(nomePagamento(v.pagamento)) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-mono font-bold accent-text">' + formatarReais(toCentavos(v.valor)) + '</td>' +
+                    '<td class="py-3 px-3 text-center no-print"><button data-id="' + escapeHtml(v.id) + '" class="btn-excluir text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir"><i class="fa-solid fa-trash-can"></i></button></td>' +
+                    '</tr>';
             }).join('');
         }
 
+        function renderSaidas() {
+            const tbody = document.getElementById('tabelaSaidas');
+            const lista = saidasMes.slice().sort(function (a, b) { return new Date(b.data) - new Date(a.data); });
+            document.getElementById('qtdSaidas').textContent = lista.length + ' registo(s)';
+
+            const porCat = {};
+            lista.forEach(function (s) {
+                const k = s.categoria || 'outros';
+                porCat[k] = (porCat[k] || 0) + toCentavos(s.valor);
+            });
+            document.getElementById('resumoCategorias').innerHTML = Object.keys(porCat).map(function (k) {
+                return '<span class="input-bg border rounded-lg px-2.5 py-1">' + escapeHtml(nomeCategoria(k)) + ': <span class="font-mono">' + formatarReais(porCat[k]) + '</span></span>';
+            }).join('');
+
+            if (lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-subtle text-xs italic">Nenhuma saída registada neste mês.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lista.map(function (s) {
+                return '<tr class="border-subtle border-b hover:opacity-80 transition-opacity">' +
+                    '<td class="py-3 px-3 text-xs text-subtle font-mono">' + formatarDataHora(s.data) + '</td>' +
+                    '<td class="py-3 px-3 font-semibold">' + escapeHtml(s.obs) + '</td>' +
+                    '<td class="py-3 px-3 text-xs text-subtle">' + escapeHtml(nomeCategoria(s.categoria)) + '</td>' +
+                    '<td class="py-3 px-3 text-xs text-subtle">' + (s.forma === 'dinheiro' ? 'Caixa (dinheiro)' : 'Pix/Cartão/Conta') + '</td>' +
+                    '<td class="py-3 px-3 text-right font-mono font-bold" style="color:#dc2626">- ' + formatarReais(toCentavos(s.valor)) + '</td>' +
+                    '<td class="py-3 px-3 text-center no-print"><button data-id="' + escapeHtml(s.id) + '" class="btn-excluir-saida text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir"><i class="fa-solid fa-trash-can"></i></button></td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        // ---------- FECHAMENTO DE CAIXA ----------
+        function linhaCaixa(rotulo, valor, opts) {
+            opts = opts || {};
+            return '<div class="flex justify-between items-center py-2 border-b border-subtle ' + (opts.forte ? 'font-black text-base' : 'font-semibold text-sm') + '">' +
+                '<span>' + rotulo + '</span>' +
+                '<span class="font-mono"' + (opts.cor ? ' style="color:' + opts.cor + '"' : '') + '>' + valor + '</span></div>';
+        }
+
+        function renderCaixa() {
+            const ehHoje = (diaCaixa === hojeChave);
+            const v = ehHoje ? vendasHoje : vendasDia;
+            const s = ehHoje ? saidasHoje : saidasDia;
+
+            const p = diaCaixa.split('-').map(Number);
+            const dataTxt = new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            document.getElementById('caixaTitulo').textContent = dataTxt.charAt(0).toUpperCase() + dataTxt.slice(1) + (ehHoje ? ' (hoje)' : '');
+            document.getElementById('caixaContagem').textContent = v.length + ' venda(s) · ' + s.length + ' saída(s)';
+
+            const porPag = { pix: 0, dinheiro: 0, cartao: 0, fiado: 0, outro: 0 };
+            v.forEach(function (x) {
+                const k = Object.prototype.hasOwnProperty.call(porPag, x.pagamento) ? x.pagamento : 'outro';
+                porPag[k] += toCentavos(x.valor);
+            });
+            const totalEnt = somaCent(v);
+
+            let saiDin = 0, saiOutro = 0;
+            s.forEach(function (x) {
+                if (x.forma === 'dinheiro') saiDin += toCentavos(x.valor); else saiOutro += toCentavos(x.valor);
+            });
+            const totalSai = saiDin + saiOutro;
+            const resultado = totalEnt - totalSai;
+
+            let html = '<div class="text-xs font-bold uppercase tracking-wider text-subtle mb-1">Entradas por forma de pagamento</div>';
+            FORMAS_PAGAMENTO.forEach(function (f) {
+                html += linhaCaixa(f.nome + (f.id === 'fiado' ? ' (a receber)' : ''), formatarReais(porPag[f.id]));
+            });
+            if (porPag.outro > 0) html += linhaCaixa('Sem forma informada', formatarReais(porPag.outro));
+            html += linhaCaixa('Total de vendas', formatarReais(totalEnt), { forte: true });
+            if (porPag.fiado > 0) {
+                html += '<p class="text-xs text-subtle py-1">Inclui ' + formatarReais(porPag.fiado) + ' em fiado ainda não recebido.</p>';
+            }
+            html += '<div class="text-xs font-bold uppercase tracking-wider text-subtle mt-4 mb-1">Saídas</div>';
+            html += linhaCaixa('Pagas em dinheiro do caixa', '- ' + formatarReais(saiDin), { cor: '#dc2626' });
+            html += linhaCaixa('Pagas por Pix / Cartão / Conta', '- ' + formatarReais(saiOutro), { cor: '#dc2626' });
+            html += linhaCaixa('Total de saídas', '- ' + formatarReais(totalSai), { forte: true, cor: '#dc2626' });
+            html += '<div class="mt-4">' + linhaCaixa('Resultado do dia (vendas − saídas)', formatarReais(resultado), { forte: true, cor: resultado < 0 ? '#dc2626' : '#16a34a' }) + '</div>';
+
+            document.getElementById('caixaResumo').innerHTML = html;
+            caixaCalc = { dinheiroEnt: porPag.dinheiro, saiDin: saiDin };
+            atualizarGaveta();
+        }
+
+        function atualizarGaveta() {
+            const alvo = document.getElementById('gavetaRes');
+            const txtFundo = document.getElementById('caixaFundo').value;
+            try { localStorage.setItem('grafica_fundo', txtFundo); } catch (e) {}
+            if (!caixaCalc) { alvo.innerHTML = ''; return; }
+
+            const nf = parseValor(txtFundo);
+            const fundo = isNaN(nf) ? 0 : Math.round(nf * 100);
+            const esperado = fundo + caixaCalc.dinheiroEnt - caixaCalc.saiDin;
+
+            let html = '';
+            html += linhaCaixa('Dinheiro recebido nas vendas', formatarReais(caixaCalc.dinheiroEnt));
+            html += linhaCaixa('(−) Saídas pagas em dinheiro', '- ' + formatarReais(caixaCalc.saiDin), { cor: '#dc2626' });
+            html += linhaCaixa('(+) Fundo de caixa', formatarReais(fundo));
+            html += linhaCaixa('Deveria ter na gaveta', formatarReais(esperado), { forte: true });
+
+            const txtContado = document.getElementById('caixaContado').value.trim();
+            const nc = parseValor(txtContado);
+            if (txtContado !== '' && !isNaN(nc)) {
+                const contado = Math.round(nc * 100);
+                const dif = contado - esperado;
+                html += linhaCaixa('Contado na gaveta', formatarReais(contado));
+                if (dif === 0) {
+                    html += '<div class="mt-3 px-3 py-2 rounded-xl text-sm font-black text-center" style="background:#dcfce7;color:#166534">✓ Caixa confere</div>';
+                } else if (dif > 0) {
+                    html += '<div class="mt-3 px-3 py-2 rounded-xl text-sm font-black text-center" style="background:#fef3c7;color:#92400e">Sobra de ' + formatarReais(dif) + '</div>';
+                } else {
+                    html += '<div class="mt-3 px-3 py-2 rounded-xl text-sm font-black text-center" style="background:#fee2e2;color:#991b1b">Falta ' + formatarReais(-dif) + '</div>';
+                }
+            }
+            alvo.innerHTML = html;
+        }
+
+        function imprimirCaixa() {
+            document.body.classList.add('print-caixa');
+            window.onafterprint = function () {
+                document.body.classList.remove('print-caixa');
+                window.onafterprint = null;
+            };
+            window.print();
+        }
+
+        // ---------- CLIQUES (botões criados dinamicamente) ----------
         document.addEventListener('click', function (e) {
-            const btn = e.target.closest('.btn-excluir');
-            if (btn) removerVenda(btn.dataset.id);
+            let b = e.target.closest('.btn-excluir');
+            if (b) { removerDoc('vendas', b.dataset.id); return; }
+            b = e.target.closest('.btn-excluir-saida');
+            if (b) { removerDoc('saidas', b.dataset.id); return; }
+            b = e.target.closest('.btn-prod');
+            if (b) { venderRapido(b.dataset.id); return; }
+            b = e.target.closest('.btn-prod-edit');
+            if (b) { editarProduto(b.dataset.id); return; }
+            b = e.target.closest('.btn-prod-del');
+            if (b) { excluirProduto(b.dataset.id); return; }
         });
 
         // ---------- TEMAS ----------
         function alterarFundo(cor) {
             document.body.classList.remove('theme-bg-branco', 'theme-bg-preto', 'theme-bg-marinho');
-            document.body.classList.add(`theme-bg-${cor}`);
+            document.body.classList.add('theme-bg-' + cor);
             try { localStorage.setItem('grafica_theme_bg', cor); } catch (e) {}
         }
 
         function alterarDetalhes(cor) {
             document.body.classList.remove('theme-accent-azul', 'theme-accent-rosa', 'theme-accent-amarelo', 'theme-accent-vinho', 'theme-accent-branco');
-            document.body.classList.add(`theme-accent-${cor}`);
+            document.body.classList.add('theme-accent-' + cor);
             try { localStorage.setItem('grafica_theme_accent', cor); } catch (e) {}
         }
     </script>
