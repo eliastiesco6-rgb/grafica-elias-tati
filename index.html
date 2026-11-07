@@ -6,9 +6,10 @@
     <title>Controlo de Entradas - Gr&aacute;fica e Papelaria Elias &amp; Tati</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SDKs do Firebase (Firestore em Nuvem) -->
+
+    <!-- SDKs do Firebase (Firestore + Autenticação) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
@@ -57,28 +58,60 @@
         .theme-accent-branco .accent-bg:hover { background-color: #e2e8f0 !important; }
         .theme-accent-branco .accent-ring:focus { --tw-ring-color: #ffffff !important; }
 
+        .hidden-app { display: none !important; }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
-            .card-bg { background: white !important; border: none !important; box-shadow: none !important; }
+            .card-bg { background: white !important; border: none !important; box-shadow: none !important; color: black !important; }
             .print-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
             .accent-text { color: black !important; }
+            .text-subtle { color: #444 !important; }
         }
     </style>
 </head>
 <body class="theme-bg-branco theme-accent-azul min-h-screen font-sans p-4 sm:p-6 transition-colors duration-200">
 
-    <div class="max-w-4xl mx-auto space-y-6 print-container">
-        
-        <!-- CONTROLO DE PERSONALIZAÇÃO DE CORES -->
+    <!-- ================= TELA DE LOGIN ================= -->
+    <div id="telaLogin" class="hidden-app max-w-sm mx-auto mt-16">
+        <div class="card-bg p-6 rounded-2xl shadow-sm border space-y-5">
+            <div class="text-center">
+                <i class="fa-solid fa-lock text-3xl accent-text mb-3"></i>
+                <h1 class="text-xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
+                <p class="text-xs text-subtle font-medium mt-1">Acesso restrito. Entre com o seu e-mail e senha.</p>
+            </div>
+
+            <form id="loginForm" onsubmit="fazerLogin(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-subtle mb-1">E-mail</label>
+                    <input type="email" id="loginEmail" required autocomplete="username"
+                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-subtle mb-1">Senha</label>
+                    <input type="password" id="loginSenha" required autocomplete="current-password"
+                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                </div>
+                <p id="loginErro" class="text-xs font-semibold text-red-500 hidden-app"></p>
+                <button type="submit" id="btnLogin" class="w-full accent-bg text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                    <span>Entrar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= APLICAÇÃO ================= -->
+    <div id="telaApp" class="hidden-app max-w-4xl mx-auto space-y-6 print-container">
+
+        <!-- CONTROLO DE PERSONALIZAÇÃO -->
         <div class="no-print card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-cloud text-sm accent-text"></i>
                 <span>Sistema na Nuvem (Sincronizado)</span>
+                <span id="emailLogado" class="text-subtle font-medium"></span>
             </div>
-            
+
             <div class="flex flex-wrap items-center gap-4">
-                <!-- Seletor de Fundo -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-subtle">Fundo:</span>
                     <select id="selectBg" onchange="alterarFundo(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
@@ -88,7 +121,6 @@
                     </select>
                 </div>
 
-                <!-- Seletor de Ícones/Destaques -->
                 <div class="flex items-center gap-1.5">
                     <span class="text-subtle">&Iacute;cones/Detalhes:</span>
                     <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
@@ -99,16 +131,20 @@
                         <option value="branco">Branco</option>
                     </select>
                 </div>
+
+                <button onclick="sair()" class="text-subtle hover:text-red-500 transition-colors flex items-center gap-1.5" title="Sair">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
             </div>
         </div>
-        
-        <!-- CABEÇALHO DA GRÁFICA -->
+
+        <!-- CABEÇALHO -->
         <header class="card-bg p-6 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-black tracking-tight">Gr&aacute;fica e Papelaria Elias &amp; Tati</h1>
                 <p class="text-xs text-subtle font-medium">Relat&oacute;rio e Registo de Entradas em Tempo Real</p>
             </div>
-            
+
             <button onclick="window.print()" class="no-print accent-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
                 <i class="fa-solid fa-print"></i> Imprimir Relat&oacute;rio
             </button>
@@ -119,18 +155,25 @@
             <h2 class="text-base font-bold mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-circle-plus accent-text"></i> Registar Nova Entrada
             </h2>
-            
+
             <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-subtle mb-1">Valor do Produto (R$)</label>
-                    <input type="number" id="valorInput" step="0.01" min="0.01" placeholder="0.00" required
+                    <input type="text" inputmode="decimal" id="valorInput" placeholder="0,00" required autocomplete="off"
                            class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
                 </div>
 
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-bold text-subtle mb-1">Obs / Produto Vendido</label>
-                    <input type="text" id="obsInput" placeholder="Ex: 100 cart&otilde;es de visita, Banner 1x1m, etc." required
+                    <input type="text" id="obsInput" placeholder="Ex: 100 cart&otilde;es de visita, Banner 1x1m, etc." required autocomplete="off"
                            class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                </div>
+
+                <div class="sm:col-span-3">
+                    <label class="block text-xs font-bold text-subtle mb-1">Forma de Pagamento</label>
+                    <div class="flex flex-wrap gap-2" id="grupoPagamento">
+                        <!-- botões inseridos via JS -->
+                    </div>
                 </div>
 
                 <div class="sm:col-span-3 flex justify-end">
@@ -141,19 +184,27 @@
             </form>
         </section>
 
-        <!-- RESUMO MENSAL E FILTROS -->
+        <!-- RESUMO: DIA + MÊS -->
         <section class="card-bg p-6 rounded-2xl shadow-sm border space-y-6">
-            
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-subtle border-b">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-subtle border-b">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total Arrecadado</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total de Hoje</span>
+                    <div class="text-2xl font-black font-mono accent-text" id="totalHoje">R$ 0,00</div>
+                    <div class="text-xs text-subtle font-mono" id="qtdHoje"></div>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Total Arrecadado no M&ecirc;s</span>
                     <div class="text-3xl font-black font-mono accent-text" id="totalMes">R$ 0,00</div>
                 </div>
+            </div>
 
-                <!-- Filtro de Mês/Ano -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-wrap gap-2 text-xs font-bold" id="resumoPagamento"></div>
+
                 <div class="no-print flex items-center gap-2">
                     <label class="text-xs font-bold text-subtle">M&ecirc;s de Consulta:</label>
-                    <input type="month" id="filtroMes" onchange="renderizarVendas()" 
+                    <input type="month" id="filtroMes" onchange="trocarMes()"
                            class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
                 </div>
             </div>
@@ -161,7 +212,7 @@
             <!-- TABELA DE VENDAS -->
             <div>
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold" id="tituloTabela">Hist&oacute;rico de Entradas</h3>
+                    <h3 class="text-sm font-bold">Hist&oacute;rico de Entradas</h3>
                     <span class="text-xs font-mono font-semibold text-subtle" id="qtdVendas">A carregar...</span>
                 </div>
 
@@ -171,23 +222,20 @@
                             <tr class="border-subtle border-b text-subtle text-xs uppercase">
                                 <th class="py-2.5 px-3">Data / Hora</th>
                                 <th class="py-2.5 px-3">Produto / Obs</th>
+                                <th class="py-2.5 px-3">Pagamento</th>
                                 <th class="py-2.5 px-3 text-right">Valor</th>
                                 <th class="py-2.5 px-3 text-center no-print">A&ccedil;&otilde;es</th>
                             </tr>
                         </thead>
-                        <tbody id="tabelaCorpo" class="divide-y border-subtle font-medium">
-                            <!-- Linhas inseridas via Nuvem -->
-                        </tbody>
+                        <tbody id="tabelaCorpo" class="divide-y border-subtle font-medium"></tbody>
                     </table>
                 </div>
             </div>
-
         </section>
-
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO FIREBASE (Chaves integradas da Gráfica e Papelaria Elias & Tati)
+        // CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDzFALnnyZEbWrVOHcJ_z7i27aEbH-00qQ",
             authDomain: "grafica-elias-tati.firebaseapp.com",
@@ -197,140 +245,316 @@
             appId: "1:697763021939:web:b2566fded236bd62611606"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        let todasVendas = [];
+        const FORMAS_PAGAMENTO = [
+            { id: 'pix',      nome: 'Pix',      icone: 'fa-qrcode' },
+            { id: 'dinheiro', nome: 'Dinheiro', icone: 'fa-money-bill-wave' },
+            { id: 'cartao',   nome: 'Cart\u00e3o', icone: 'fa-credit-card' },
+            { id: 'fiado',    nome: 'Fiado',    icone: 'fa-handshake' }
+        ];
 
-        window.onload = function() {
+        let vendasMes = [];
+        let vendasHoje = [];
+        let pagamentoSelecionado = 'pix';
+        let unsubMes = null;
+        let unsubHoje = null;
+
+        // ---------- UTILITÁRIOS ----------
+        function escapeHtml(texto) {
+            return String(texto == null ? '' : texto)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function toCentavos(valor) {
+            return Math.round((Number(valor) || 0) * 100);
+        }
+
+        function formatarReais(centavos) {
+            return 'R$ ' + (centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function nomePagamento(id) {
+            const f = FORMAS_PAGAMENTO.find(x => x.id === id);
+            return f ? f.nome : '\u2014';
+        }
+
+        // ---------- INICIALIZAÇÃO ----------
+        window.onload = function () {
             const savedBg = localStorage.getItem('grafica_theme_bg') || 'branco';
             const savedAccent = localStorage.getItem('grafica_theme_accent') || 'azul';
-            
             alterarFundo(savedBg);
             alterarDetalhes(savedAccent);
-
             document.getElementById('selectBg').value = savedBg;
             document.getElementById('selectAccent').value = savedAccent;
 
             const hoje = new Date();
-            const ano = hoje.getFullYear();
-            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-            document.getElementById('filtroMes').value = `${ano}-${mes}`;
+            document.getElementById('filtroMes').value =
+                `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
-            // Inicia a escuta em tempo real da nuvem
-            ouvirNuvemEmTempoReal();
+            montarBotoesPagamento();
+            const salvo = localStorage.getItem('grafica_pagamento');
+            if (salvo && FORMAS_PAGAMENTO.some(f => f.id === salvo)) pagamentoSelecionado = salvo;
+            atualizarBotoesPagamento();
+
+            // Controla o que aparece conforme o login
+            auth.onAuthStateChanged(function (user) {
+                if (user) {
+                    document.getElementById('telaLogin').classList.add('hidden-app');
+                    document.getElementById('telaApp').classList.remove('hidden-app');
+                    document.getElementById('emailLogado').textContent = '\u2022 ' + (user.email || '');
+                    iniciarEscutas();
+                } else {
+                    pararEscutas();
+                    document.getElementById('telaApp').classList.add('hidden-app');
+                    document.getElementById('telaLogin').classList.remove('hidden-app');
+                }
+            });
         };
 
-        function ouvirNuvemEmTempoReal() {
-            db.collection("vendas").onSnapshot((snapshot) => {
-                todasVendas = [];
-                snapshot.forEach((doc) => {
-                    todasVendas.push({ id: doc.id, ...doc.data() });
-                });
-                renderizarVendas();
-            }, (error) => {
-                console.error("Erro ao conectar à nuvem:", error);
-                alert("Erro ao sincronizar com o Firebase. Verifica a tua ligação.");
+        // ---------- LOGIN ----------
+        async function fazerLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const senha = document.getElementById('loginSenha').value;
+            const erro = document.getElementById('loginErro');
+            const btn = document.getElementById('btnLogin');
+
+            erro.classList.add('hidden-app');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>A entrar...</span>';
+
+            try {
+                await auth.signInWithEmailAndPassword(email, senha);
+                document.getElementById('loginSenha').value = '';
+            } catch (err) {
+                const msgs = {
+                    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+                    'auth/wrong-password': 'E-mail ou senha incorretos.',
+                    'auth/user-not-found': 'E-mail ou senha incorretos.',
+                    'auth/invalid-email': 'E-mail inv\u00e1lido.',
+                    'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente de novo.',
+                    'auth/network-request-failed': 'Sem conex\u00e3o com a internet.'
+                };
+                erro.textContent = msgs[err.code] || ('Erro ao entrar: ' + err.message);
+                erro.classList.remove('hidden-app');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Entrar</span>';
+            }
+        }
+
+        function sair() {
+            auth.signOut();
+        }
+
+        // ---------- ESCUTA EM TEMPO REAL ----------
+        function iniciarEscutas() {
+            pararEscutas();
+            escutarMes();
+            escutarHoje();
+        }
+
+        function pararEscutas() {
+            if (unsubMes) { unsubMes(); unsubMes = null; }
+            if (unsubHoje) { unsubHoje(); unsubHoje = null; }
+            vendasMes = [];
+            vendasHoje = [];
+        }
+
+        function tratarErroNuvem(error) {
+            console.error('Erro na nuvem:', error);
+            if (error.code === 'permission-denied') {
+                alert('Sem permiss\u00e3o para acessar os dados. Saia e entre novamente.');
+            } else {
+                alert('Erro ao sincronizar com o Firebase. Verifique a liga\u00e7\u00e3o.');
+            }
+        }
+
+        function escutarMes() {
+            if (unsubMes) { unsubMes(); unsubMes = null; }
+            const valor = document.getElementById('filtroMes').value;
+            if (!valor) return;
+            const [ano, mes] = valor.split('-').map(Number);
+            const inicio = new Date(ano, mes - 1, 1).toISOString();
+            const fim = new Date(ano, mes, 1).toISOString();
+
+            unsubMes = db.collection('vendas')
+                .where('data', '>=', inicio)
+                .where('data', '<', fim)
+                .onSnapshot(function (snapshot) {
+                    vendasMes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderizarVendas();
+                }, tratarErroNuvem);
+        }
+
+        function escutarHoje() {
+            if (unsubHoje) { unsubHoje(); unsubHoje = null; }
+            const agora = new Date();
+            const inicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).toISOString();
+
+            unsubHoje = db.collection('vendas')
+                .where('data', '>=', inicio)
+                .onSnapshot(function (snapshot) {
+                    vendasHoje = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderizarResumoHoje();
+                }, tratarErroNuvem);
+        }
+
+        function trocarMes() {
+            vendasMes = [];
+            renderizarVendas();
+            escutarMes();
+        }
+
+        // ---------- PAGAMENTO ----------
+        function montarBotoesPagamento() {
+            const grupo = document.getElementById('grupoPagamento');
+            grupo.innerHTML = FORMAS_PAGAMENTO.map(f => `
+                <button type="button" data-pag="${f.id}" onclick="selecionarPagamento('${f.id}')"
+                        class="btn-pag input-bg border rounded-xl px-3.5 py-2 text-xs font-bold flex items-center gap-2 transition-all">
+                    <i class="fa-solid ${f.icone}"></i> ${f.nome}
+                </button>
+            `).join('');
+        }
+
+        function selecionarPagamento(id) {
+            pagamentoSelecionado = id;
+            try { localStorage.setItem('grafica_pagamento', id); } catch (e) {}
+            atualizarBotoesPagamento();
+        }
+
+        function atualizarBotoesPagamento() {
+            document.querySelectorAll('.btn-pag').forEach(btn => {
+                const ativo = btn.dataset.pag === pagamentoSelecionado;
+                btn.classList.toggle('accent-bg', ativo);
+                btn.classList.toggle('text-white', ativo);
             });
         }
 
+        // ---------- REGISTRAR / REMOVER ----------
         async function registrarVenda(event) {
             event.preventDefault();
-            const valor = parseFloat(document.getElementById('valorInput').value);
+            const texto = document.getElementById('valorInput').value.trim().replace(/\./g, '').replace(',', '.');
+            const valor = parseFloat(texto);
             const obs = document.getElementById('obsInput').value.trim();
 
-            if (!valor || !obs) return;
+            if (!isFinite(valor) || valor <= 0 || !obs) {
+                alert('Informe um valor v\u00e1lido (ex: 12,50) e a descri\u00e7\u00e3o.');
+                return;
+            }
 
             const btnSalvar = document.getElementById('btnSalvar');
             btnSalvar.disabled = true;
-            btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> A guardar...`;
+            btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> A guardar...';
 
             try {
-                await db.collection("vendas").add({
-                    valor: valor,
+                await db.collection('vendas').add({
+                    valor: Math.round(valor * 100) / 100,
                     obs: obs,
-                    data: new Date().toISOString()
+                    pagamento: pagamentoSelecionado,
+                    data: new Date().toISOString(),
+                    autor: (auth.currentUser && auth.currentUser.email) || ''
                 });
 
                 document.getElementById('valorInput').value = '';
                 document.getElementById('obsInput').value = '';
                 document.getElementById('valorInput').focus();
             } catch (err) {
-                alert("Erro ao guardar na nuvem: " + err.message);
+                alert('Erro ao guardar na nuvem: ' + err.message);
             } finally {
                 btnSalvar.disabled = false;
-                btnSalvar.innerHTML = `<span>Adicionar Entrada</span>`;
+                btnSalvar.innerHTML = '<span>Adicionar Entrada</span>';
             }
         }
 
         async function removerVenda(id) {
-            if (confirm("Tem certeza que deseja apagar esta entrada?")) {
+            if (confirm('Tem certeza que deseja apagar esta entrada?')) {
                 try {
-                    await db.collection("vendas").doc(id).delete();
+                    await db.collection('vendas').doc(id).delete();
                 } catch (err) {
-                    alert("Erro ao apagar: " + err.message);
+                    alert('Erro ao apagar: ' + err.message);
                 }
             }
         }
 
+        // ---------- RENDERIZAÇÃO ----------
+        function renderizarResumoHoje() {
+            const total = vendasHoje.reduce((acc, v) => acc + toCentavos(v.valor), 0);
+            document.getElementById('totalHoje').textContent = formatarReais(total);
+            document.getElementById('qtdHoje').textContent = vendasHoje.length + ' venda(s) hoje';
+        }
+
         function renderizarVendas() {
-            const mesSelecionado = document.getElementById('filtroMes').value;
             const tabelaCorpo = document.getElementById('tabelaCorpo');
-            
-            const vendasFiltradas = todasVendas.filter(v => {
-                const dataVenda = new Date(v.data);
-                const ano = dataVenda.getFullYear();
-                const mes = String(dataVenda.getMonth() + 1).padStart(2, '0');
-                return `${ano}-${mes}` === mesSelecionado;
+            const lista = vendasMes.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            const total = lista.reduce((acc, v) => acc + toCentavos(v.valor), 0);
+            document.getElementById('totalMes').textContent = formatarReais(total);
+            document.getElementById('qtdVendas').textContent = lista.length + ' registo(s)';
+
+            // Resumo por forma de pagamento
+            const porPag = {};
+            lista.forEach(v => {
+                const k = v.pagamento || 'outro';
+                porPag[k] = (porPag[k] || 0) + toCentavos(v.valor);
             });
+            document.getElementById('resumoPagamento').innerHTML = Object.keys(porPag).map(k => {
+                const nome = k === 'outro' ? 'Sem forma' : nomePagamento(k);
+                return `<span class="input-bg border rounded-lg px-2.5 py-1">${escapeHtml(nome)}: <span class="font-mono">${formatarReais(porPag[k])}</span></span>`;
+            }).join('');
 
-            vendasFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-            const total = vendasFiltradas.reduce((acc, v) => acc + v.valor, 0);
-            document.getElementById('totalMes').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            document.getElementById('qtdVendas').innerText = `${vendasFiltradas.length} registo(s)`;
-
-            if (vendasFiltradas.length === 0) {
+            if (lista.length === 0) {
                 tabelaCorpo.innerHTML = `
                     <tr>
-                        <td colspan="4" class="py-8 text-center text-subtle text-xs italic">
+                        <td colspan="5" class="py-8 text-center text-subtle text-xs italic">
                             Nenhuma entrada registada neste m&ecirc;s.
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
                 return;
             }
 
-            tabelaCorpo.innerHTML = vendasFiltradas.map(v => {
+            tabelaCorpo.innerHTML = lista.map(v => {
                 const d = new Date(v.data);
                 const dataFormatada = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} &agrave;s ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-                
+
                 return `
                     <tr class="border-subtle border-b hover:opacity-80 transition-opacity">
                         <td class="py-3 px-3 text-xs text-subtle font-mono">${dataFormatada}</td>
-                        <td class="py-3 px-3 font-semibold">${v.obs}</td>
-                        <td class="py-3 px-3 text-right font-mono font-bold accent-text">R$ ${v.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="py-3 px-3 font-semibold">${escapeHtml(v.obs)}</td>
+                        <td class="py-3 px-3 text-xs text-subtle">${escapeHtml(nomePagamento(v.pagamento))}</td>
+                        <td class="py-3 px-3 text-right font-mono font-bold accent-text">${formatarReais(toCentavos(v.valor))}</td>
                         <td class="py-3 px-3 text-center no-print">
-                            <button onclick="removerVenda('${v.id}')" class="text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir">
+                            <button data-id="${escapeHtml(v.id)}" class="btn-excluir text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }).join('');
         }
 
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-excluir');
+            if (btn) removerVenda(btn.dataset.id);
+        });
+
+        // ---------- TEMAS ----------
         function alterarFundo(cor) {
             document.body.classList.remove('theme-bg-branco', 'theme-bg-preto', 'theme-bg-marinho');
             document.body.classList.add(`theme-bg-${cor}`);
-            localStorage.setItem('grafica_theme_bg', cor);
+            try { localStorage.setItem('grafica_theme_bg', cor); } catch (e) {}
         }
 
         function alterarDetalhes(cor) {
             document.body.classList.remove('theme-accent-azul', 'theme-accent-rosa', 'theme-accent-amarelo', 'theme-accent-vinho', 'theme-accent-branco');
             document.body.classList.add(`theme-accent-${cor}`);
-            localStorage.setItem('grafica_theme_accent', cor);
+            try { localStorage.setItem('grafica_theme_accent', cor); } catch (e) {}
         }
     </script>
 </body>
