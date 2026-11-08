@@ -72,38 +72,54 @@
 
         /* Comportamento de app no celular */
         html { -webkit-tap-highlight-color: transparent; }
-        body {
-            overscroll-behavior-y: contain;
-            padding-top: max(1rem, env(safe-area-inset-top));
-            padding-bottom: max(1rem, env(safe-area-inset-bottom));
-        }
+        body { overscroll-behavior-y: contain; margin: 0; }
         input, select, button { touch-action: manipulation; }
-        @media (max-width: 640px) {
+        @media (max-width: 767px) {
             input, select { font-size: 16px !important; } /* evita o zoom automático ao digitar */
             .btn-pag { padding-top: 0.75rem; padding-bottom: 0.75rem; flex: 1 1 40%; justify-content: center; }
         }
 
+        /* ===== MENU LATERAL ===== */
+        #sidebar {
+            position: fixed; top: 0; bottom: 0; left: 0; width: 17rem; max-width: 85vw; z-index: 50;
+            transform: translateX(-100%); transition: transform .22s ease;
+            display: flex; flex-direction: column;
+            border-right-width: 1px;
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+        }
+        #sidebar.aberto { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.45); }
+        #overlayMenu { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 40; }
+        #topbar {
+            position: sticky; top: 0; z-index: 30;
+            padding-top: calc(0.6rem + env(safe-area-inset-top));
+            border-bottom-width: 1px;
+        }
+        #conteudo { padding: 1rem; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+        .nav-item { display: flex; align-items: center; gap: .85rem; width: 100%; padding: .8rem 1rem; border-radius: .85rem; font-size: .95rem; font-weight: 700; text-align: left; }
+        .nav-item i { width: 1.25rem; text-align: center; font-size: 1.05rem; }
+        @media (min-width: 768px) {
+            #sidebar { transform: none; box-shadow: none; }
+            #overlayMenu { display: none !important; }
+            #topbar { display: none; }
+            #conteudo { margin-left: 17rem; padding: 1.5rem 2rem; }
+            #conteudo > .pagina-largura { max-width: 56rem; margin: 0 auto; }
+        }
+
         @media print {
-            .no-print { display: none !important; }
+            .no-print, #sidebar, #topbar, #overlayMenu { display: none !important; }
             body { background: white !important; color: black !important; }
+            #conteudo { margin-left: 0 !important; padding: 0 !important; }
             .card-bg { background: white !important; border: none !important; box-shadow: none !important; color: black !important; }
-            .print-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
             .accent-text { color: black !important; }
             .text-subtle { color: #444 !important; }
-            body.print-caixa .nao-caixa { display: none !important; }
             input { border: 1px solid #999 !important; background: white !important; color: black !important; }
         }
     </style>
 </head>
-<body class="theme-bg-branco theme-accent-azul min-h-screen font-sans p-4 sm:p-6 transition-colors duration-200">
-
-    <!-- AVISO DE SEM INTERNET -->
-    <div id="avisoOffline" class="hidden-app no-print max-w-4xl mx-auto mb-4 px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-bold text-center">
-        <i class="fa-solid fa-wifi"></i> Sem internet: os registos ficam salvos no aparelho e sincronizam quando a conexão voltar.
-    </div>
+<body class="theme-bg-branco theme-accent-azul min-h-screen font-sans transition-colors duration-200">
 
     <!-- ================= TELA DE LOGIN ================= -->
-    <div id="telaLogin" class="hidden-app max-w-sm mx-auto mt-16">
+    <div id="telaLogin" class="hidden-app max-w-sm mx-auto mt-16 p-4">
         <div class="card-bg p-6 rounded-2xl shadow-sm border space-y-5">
             <div class="text-center">
                 <i class="fa-solid fa-lock text-3xl accent-text mb-3"></i>
@@ -131,336 +147,371 @@
     </div>
 
     <!-- ================= APLICAÇÃO ================= -->
-    <div id="telaApp" class="hidden-app max-w-4xl mx-auto space-y-6 print-container" style="padding-bottom: 5.5rem;">
+    <div id="telaApp" class="hidden-app">
 
-        <!-- CONTROLO DE PERSONALIZAÇÃO -->
-        <div class="no-print nao-caixa card-bg p-4 rounded-2xl shadow-sm border flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cloud text-sm accent-text"></i>
-                <span>Sistema na Nuvem (Sincronizado)</span>
-                <span id="emailLogado" class="text-subtle font-medium"></span>
+        <!-- MENU LATERAL -->
+        <div id="overlayMenu" class="hidden-app no-print" onclick="fecharMenu()"></div>
+        <aside id="sidebar" class="card-bg no-print" aria-label="Menu">
+            <div class="p-5 pb-3 flex items-start justify-between gap-3">
+                <div>
+                    <div class="text-lg font-black leading-tight">Gráfica e Papelaria</div>
+                    <div class="text-sm font-bold accent-text">Elias &amp; Tati</div>
+                </div>
+                <button type="button" onclick="fecharMenu()" class="md:hidden text-subtle p-1" aria-label="Fechar menu" id="btnFecharMenu">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4">
-                <div class="flex items-center gap-1.5">
-                    <span class="text-subtle">Fundo:</span>
-                    <select id="selectBg" onchange="alterarFundo(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
-                        <option value="branco">Branco</option>
-                        <option value="preto">Preto</option>
-                        <option value="marinho">Azul-marinho</option>
-                    </select>
+            <nav class="px-3 py-2 space-y-1 flex-1 overflow-y-auto">
+                <button type="button" data-aba="inicio"  onclick="trocarAba('inicio')"  class="nav-item"><i class="fa-solid fa-house"></i> Início</button>
+                <button type="button" data-aba="vendas"  onclick="trocarAba('vendas')"  class="nav-item"><i class="fa-solid fa-cash-register"></i> Vendas</button>
+                <button type="button" data-aba="saidas"  onclick="trocarAba('saidas')"  class="nav-item"><i class="fa-solid fa-arrow-trend-down"></i> Saídas</button>
+                <button type="button" data-aba="caixa"   onclick="trocarAba('caixa')"   class="nav-item"><i class="fa-solid fa-calculator"></i> Caixa do dia</button>
+                <button type="button" data-aba="ajustes" onclick="trocarAba('ajustes')" class="nav-item"><i class="fa-solid fa-gear"></i> Ajustes</button>
+            </nav>
+
+            <div class="p-4 border-t border-subtle space-y-3">
+                <div class="flex items-center gap-2 text-[11px] font-bold text-subtle">
+                    <i class="fa-solid fa-cloud accent-text"></i>
+                    <span>Sincronizado</span>
                 </div>
-
-                <div class="flex items-center gap-1.5">
-                    <span class="text-subtle">Ícones/Detalhes:</span>
-                    <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="input-bg rounded-lg px-2.5 py-1 text-xs focus:outline-none cursor-pointer">
-                        <option value="azul">Azul</option>
-                        <option value="rosa">Rosa</option>
-                        <option value="amarelo">Amarelo</option>
-                        <option value="vinho">Vinho</option>
-                        <option value="branco">Branco</option>
-                    </select>
-                </div>
-
-                <button id="btnInstalar" onclick="instalarApp()" class="hidden-app accent-bg text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5" title="Instalar como app">
-                    <i class="fa-solid fa-download"></i> Instalar app
-                </button>
-
-                <button onclick="sair()" class="text-subtle hover:text-red-500 transition-colors flex items-center gap-1.5" title="Sair">
+                <div class="text-xs text-subtle font-medium break-all" id="emailLogado"></div>
+                <button type="button" onclick="sair()" class="text-sm font-bold text-subtle hover:text-red-500 flex items-center gap-2">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
                 </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- CABEÇALHO -->
-        <header class="card-bg p-6 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-black tracking-tight">Gráfica e Papelaria Elias &amp; Tati</h1>
-                <p class="text-xs text-subtle font-medium">Entradas, saídas e caixa em tempo real</p>
-            </div>
-
-            <button onclick="window.print()" class="no-print accent-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition-all flex items-center gap-2">
-                <i class="fa-solid fa-print"></i> Imprimir Relatório
+        <!-- BARRA DO TOPO (só no celular) -->
+        <header id="topbar" class="card-bg no-print flex items-center gap-3 px-4 pb-2.5">
+            <button type="button" onclick="abrirMenu()" class="p-2 -ml-2 rounded-lg" aria-label="Abrir menu" id="btnMenu">
+                <i class="fa-solid fa-bars text-xl"></i>
             </button>
+            <h1 class="text-base font-black flex-1 truncate" id="tituloPagina">Início</h1>
+            <span id="pontoOffline" class="hidden-app text-xs font-bold px-2 py-1 rounded-lg bg-amber-500 text-black"><i class="fa-solid fa-wifi"></i> offline</span>
         </header>
 
-        <!-- RESUMO: HOJE E MÊS -->
-        <section class="nao-caixa card-bg p-5 rounded-2xl shadow-sm border space-y-5">
+        <!-- CONTEÚDO -->
+        <main id="conteudo">
+            <div class="pagina-largura space-y-5">
 
-            <div>
-                <div class="flex justify-between items-baseline mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Hoje</span>
-                    <span class="text-xs font-mono text-subtle" id="qtdHoje"></span>
-                </div>
-                <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeEnt">R$ 0,00</div>
-                    </div>
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="hojeSai">R$ 0,00</div>
-                    </div>
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Saldo</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeSal">R$ 0,00</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t border-subtle pt-4">
-                <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-subtle">Mês</span>
-                    <div class="no-print flex items-center gap-2">
-                        <label class="text-xs font-bold text-subtle">Mês de consulta:</label>
-                        <input type="month" id="filtroMes" onchange="trocarMes()"
-                               class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
-                    </div>
-                </div>
-                <div class="grid grid-cols-3 gap-2 sm:gap-4">
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesEnt">R$ 0,00</div>
-                    </div>
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="mesSai">R$ 0,00</div>
-                    </div>
-                    <div>
-                        <div class="text-[11px] font-bold uppercase text-subtle">Lucro</div>
-                        <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesLuc">R$ 0,00</div>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 text-xs font-bold mt-3" id="resumoPagamento"></div>
-            </div>
-        </section>
-
-        <!-- ============ ABA: VENDAS ============ -->
-        <div id="aba-vendas" class="space-y-6">
-
-            <section class="no-print card-bg p-5 rounded-2xl shadow-sm border space-y-4">
-                <h2 class="text-base font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-circle-plus accent-text"></i> Registar Venda
-                </h2>
-
-                <div>
-                    <label class="block text-xs font-bold text-subtle mb-1">Forma de Pagamento</label>
-                    <div class="flex flex-wrap gap-2" id="grupoPagamento"></div>
+                <div id="avisoOffline" class="hidden-app no-print px-4 py-2 rounded-xl bg-amber-500 text-black text-xs font-bold text-center">
+                    <i class="fa-solid fa-wifi"></i> Sem internet: os registos ficam salvos no aparelho e sincronizam quando a conexão voltar.
                 </div>
 
-                <!-- PRODUTOS RÁPIDOS -->
-                <div>
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <label class="text-xs font-bold text-subtle">Produtos rápidos <span class="font-medium">(toque para registar)</span></label>
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-1.5 text-xs font-bold">
-                                <button type="button" onclick="mudarQtd(-1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Diminuir quantidade"><i class="fa-solid fa-minus"></i></button>
-                                <span id="qtdValor" class="font-mono w-8 text-center">1x</span>
-                                <button type="button" onclick="mudarQtd(1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Aumentar quantidade"><i class="fa-solid fa-plus"></i></button>
+                <!-- ============ PÁGINA: INÍCIO ============ -->
+                <div id="aba-inicio" class="space-y-5">
+                    <div class="hidden md:block">
+                        <h2 class="text-2xl font-black tracking-tight">Início</h2>
+                        <p class="text-xs text-subtle font-medium">Resumo de entradas, saídas e lucro</p>
+                    </div>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border">
+                        <div class="flex justify-between items-baseline mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-subtle">Hoje</span>
+                            <span class="text-xs font-mono text-subtle" id="qtdHoje"></span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeEnt">R$ 0,00</div>
                             </div>
-                            <button type="button" onclick="alternarPainelProdutos()" class="text-xs font-bold text-subtle flex items-center gap-1.5">
-                                <i class="fa-solid fa-gear"></i> Gerenciar
-                            </button>
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="hojeSai">R$ 0,00</div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Saldo</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="hojeSal">R$ 0,00</div>
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div id="gradeProdutos" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
-
-                    <div id="semProdutos" class="hidden-app text-xs text-subtle text-center py-4 space-y-2">
-                        <p>Nenhum produto cadastrado ainda.</p>
-                        <button type="button" onclick="adicionarSugestoes()" class="accent-bg text-white font-bold px-3 py-2 rounded-lg">
-                            Adicionar sugestões (Impressão, Xerox, Plastificação)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- GERENCIAR PRODUTOS -->
-                <div id="painelProdutos" class="hidden-app border-t border-subtle pt-4 space-y-3">
-                    <h3 class="text-sm font-bold">Gerenciar produtos rápidos</h3>
-                    <div id="listaProdutos" class="space-y-1"></div>
-                    <form onsubmit="adicionarProduto(event)" class="grid grid-cols-5 gap-2">
-                        <input type="text" id="prodNome" placeholder="Nome (ex: Xerox)" required autocomplete="off"
-                               class="col-span-3 input-bg accent-ring border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2">
-                        <input type="text" inputmode="decimal" id="prodPreco" placeholder="0,00" required autocomplete="off"
-                               class="col-span-1 input-bg accent-ring border rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2">
-                        <button type="submit" class="col-span-1 accent-bg text-white rounded-xl text-sm font-bold" aria-label="Adicionar produto">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- LANÇAMENTO MANUAL -->
-                <div class="border-t border-subtle pt-4">
-                    <label class="block text-xs font-bold text-subtle mb-2">Ou lance manualmente</label>
-                    <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-subtle">Mês</span>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-subtle">Consultar:</label>
+                                <input type="month" class="filtro-mes input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Entradas</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesEnt">R$ 0,00</div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Saídas</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono break-words" style="color:#dc2626" id="mesSai">R$ 0,00</div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold uppercase text-subtle">Lucro</div>
+                                <div class="text-sm sm:text-2xl font-black font-mono accent-text break-words" id="mesLuc">R$ 0,00</div>
+                            </div>
+                        </div>
                         <div>
-                            <label class="block text-xs font-bold text-subtle mb-1">Valor do Produto (R$)</label>
-                            <input type="text" inputmode="decimal" id="valorInput" placeholder="0,00" required autocomplete="off"
-                                   class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                            <div class="text-[11px] font-bold uppercase text-subtle mb-1.5">Entradas por forma de pagamento</div>
+                            <div class="flex flex-wrap gap-2 text-xs font-bold" id="resumoPagamento"></div>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-bold text-subtle mb-1">Obs / Produto Vendido</label>
-                            <input type="text" id="obsInput" placeholder="Ex: 100 cartões de visita, Banner 1x1m, etc." required autocomplete="off"
-                                   class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
-                        </div>
-                        <div class="sm:col-span-3 flex justify-end">
-                            <button type="submit" id="btnSalvar" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
-                                <span>Adicionar Entrada</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                    </section>
 
-            <section class="card-bg p-5 rounded-2xl shadow-sm border">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold">Histórico de Entradas</h3>
-                    <span class="text-xs font-mono font-semibold text-subtle" id="qtdVendas">A carregar...</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-subtle border-b text-subtle text-xs uppercase">
-                                <th class="py-2.5 px-3">Data / Hora</th>
-                                <th class="py-2.5 px-3">Produto / Obs</th>
-                                <th class="py-2.5 px-3">Pagamento</th>
-                                <th class="py-2.5 px-3 text-right">Valor</th>
-                                <th class="py-2.5 px-3 text-center no-print">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaCorpo" class="divide-y border-subtle font-medium"></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- ============ ABA: SAÍDAS ============ -->
-        <div id="aba-saidas" class="hidden-app space-y-6">
-
-            <section class="no-print card-bg p-5 rounded-2xl shadow-sm border">
-                <h2 class="text-base font-bold mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-minus" style="color:#dc2626"></i> Registar Saída / Despesa
-                </h2>
-
-                <form id="saidaForm" onsubmit="registrarSaida(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-subtle mb-1">Valor (R$)</label>
-                        <input type="text" inputmode="decimal" id="saidaValor" placeholder="0,00" required autocomplete="off"
-                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-subtle mb-1">Descrição</label>
-                        <input type="text" id="saidaObs" placeholder="Ex: Resma de papel A4, conta de luz, tinta..." required autocomplete="off"
-                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-subtle mb-1">Categoria</label>
-                        <select id="saidaCategoria" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-subtle mb-1">Saiu de onde?</label>
-                        <select id="saidaForma" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
-                            <option value="dinheiro">Dinheiro do caixa</option>
-                            <option value="outro">Pix / Cartão / Conta</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" id="btnSalvarSaida" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
-                            <span>Adicionar Saída</span>
+                    <section class="no-print grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button type="button" onclick="trocarAba('vendas')" class="accent-bg text-white rounded-2xl py-4 text-sm font-bold flex items-center justify-center gap-2 shadow">
+                            <i class="fa-solid fa-circle-plus"></i> Nova venda
                         </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-3">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-bold">Histórico de Saídas do mês</h3>
-                    <span class="text-xs font-mono font-semibold text-subtle" id="qtdSaidas">A carregar...</span>
-                </div>
-                <div class="flex flex-wrap gap-2 text-xs font-bold" id="resumoCategorias"></div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-subtle border-b text-subtle text-xs uppercase">
-                                <th class="py-2.5 px-3">Data / Hora</th>
-                                <th class="py-2.5 px-3">Descrição</th>
-                                <th class="py-2.5 px-3">Categoria</th>
-                                <th class="py-2.5 px-3">Saiu de</th>
-                                <th class="py-2.5 px-3 text-right">Valor</th>
-                                <th class="py-2.5 px-3 text-center no-print">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaSaidas" class="divide-y border-subtle font-medium"></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- ============ ABA: CAIXA DO DIA ============ -->
-        <div id="aba-caixa" class="hidden-app space-y-6">
-            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
-                <div class="flex flex-wrap justify-between items-start gap-3">
-                    <div>
-                        <h2 class="text-base font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-calculator accent-text"></i> Fechamento de Caixa
-                        </h2>
-                        <p class="text-xs text-subtle font-medium mt-1" id="caixaTitulo"></p>
-                        <p class="text-xs text-subtle font-mono" id="caixaContagem"></p>
-                    </div>
-                    <div class="no-print flex items-center gap-2">
-                        <input type="date" id="caixaData" onchange="trocarDiaCaixa()"
-                               class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
-                        <button onclick="imprimirCaixa()" class="accent-bg text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2">
-                            <i class="fa-solid fa-print"></i> Imprimir
+                        <button type="button" onclick="trocarAba('saidas')" class="card-bg border rounded-2xl py-4 text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-minus" style="color:#dc2626"></i> Nova saída
                         </button>
-                    </div>
+                        <button type="button" onclick="trocarAba('caixa')" class="card-bg border rounded-2xl py-4 text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calculator accent-text"></i> Fechar caixa
+                        </button>
+                    </section>
                 </div>
 
-                <div id="caixaResumo"></div>
-            </section>
+                <!-- ============ PÁGINA: VENDAS ============ -->
+                <div id="aba-vendas" class="hidden-app space-y-5">
+                    <div class="hidden md:block">
+                        <h2 class="text-2xl font-black tracking-tight">Vendas</h2>
+                        <p class="text-xs text-subtle font-medium">Registre entradas e veja o histórico</p>
+                    </div>
 
-            <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
-                <h3 class="text-sm font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-money-bill-wave accent-text"></i> Conferência do dinheiro na gaveta
-                </h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-subtle mb-1">Fundo de caixa (troco inicial)</label>
-                        <input type="text" inputmode="decimal" id="caixaFundo" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
-                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-subtle mb-1">Dinheiro contado agora</label>
-                        <input type="text" inputmode="decimal" id="caixaContado" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
-                               class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
-                    </div>
+                    <section class="no-print card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-subtle mb-1.5">Forma de pagamento</label>
+                            <div class="flex flex-wrap gap-2" id="grupoPagamento"></div>
+                        </div>
+
+                        <!-- PRODUTOS RÁPIDOS -->
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <label class="text-xs font-bold text-subtle">Produtos rápidos <span class="font-medium">(toque para registar)</span></label>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <button type="button" onclick="mudarQtd(-1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Diminuir quantidade"><i class="fa-solid fa-minus"></i></button>
+                                        <span id="qtdValor" class="font-mono w-8 text-center">1x</span>
+                                        <button type="button" onclick="mudarQtd(1)" class="input-bg border rounded-lg w-8 h-8 flex items-center justify-center" aria-label="Aumentar quantidade"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                    <button type="button" onclick="alternarPainelProdutos()" class="text-xs font-bold text-subtle flex items-center gap-1.5">
+                                        <i class="fa-solid fa-gear"></i> Gerenciar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="gradeProdutos" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+
+                            <div id="semProdutos" class="hidden-app text-xs text-subtle text-center py-4 space-y-2">
+                                <p>Nenhum produto cadastrado ainda.</p>
+                                <button type="button" onclick="adicionarSugestoes()" class="accent-bg text-white font-bold px-3 py-2 rounded-lg">
+                                    Adicionar sugestões (Impressão, Xerox, Plastificação)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- GERENCIAR PRODUTOS -->
+                        <div id="painelProdutos" class="hidden-app border-t border-subtle pt-4 space-y-3">
+                            <h3 class="text-sm font-bold">Gerenciar produtos rápidos</h3>
+                            <div id="listaProdutos" class="space-y-1"></div>
+                            <form onsubmit="adicionarProduto(event)" class="grid grid-cols-5 gap-2">
+                                <input type="text" id="prodNome" placeholder="Nome (ex: Xerox)" required autocomplete="off"
+                                       class="col-span-3 input-bg accent-ring border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2">
+                                <input type="text" inputmode="decimal" id="prodPreco" placeholder="0,00" required autocomplete="off"
+                                       class="col-span-1 input-bg accent-ring border rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2">
+                                <button type="submit" class="col-span-1 accent-bg text-white rounded-xl text-sm font-bold" aria-label="Adicionar produto">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- LANÇAMENTO MANUAL -->
+                        <div class="border-t border-subtle pt-4">
+                            <label class="block text-xs font-bold text-subtle mb-2">Ou lance manualmente</label>
+                            <form id="vendaForm" onsubmit="registrarVenda(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-subtle mb-1">Valor (R$)</label>
+                                    <input type="text" inputmode="decimal" id="valorInput" placeholder="0,00" required autocomplete="off"
+                                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-subtle mb-1">Produto / Obs</label>
+                                    <input type="text" id="obsInput" placeholder="Ex: 100 cartões de visita, Banner 1x1m" required autocomplete="off"
+                                           class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                                </div>
+                                <div class="sm:col-span-3 flex justify-end">
+                                    <button type="submit" id="btnSalvar" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                                        <span>Adicionar Entrada</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-1">
+                            <h3 class="text-sm font-bold">Histórico de entradas</h3>
+                            <div class="no-print flex items-center gap-2">
+                                <input type="month" class="filtro-mes input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                                <button type="button" onclick="window.print()" class="text-subtle p-1.5" title="Imprimir" aria-label="Imprimir"><i class="fa-solid fa-print"></i></button>
+                            </div>
+                        </div>
+                        <div class="text-xs font-mono font-semibold text-subtle mb-1" id="qtdVendas">A carregar...</div>
+                        <div id="listaVendas"></div>
+                    </section>
                 </div>
-                <div id="gavetaRes"></div>
-            </section>
-        </div>
+
+                <!-- ============ PÁGINA: SAÍDAS ============ -->
+                <div id="aba-saidas" class="hidden-app space-y-5">
+                    <div class="hidden md:block">
+                        <h2 class="text-2xl font-black tracking-tight">Saídas</h2>
+                        <p class="text-xs text-subtle font-medium">Despesas, compras de material e retiradas</p>
+                    </div>
+
+                    <section class="no-print card-bg p-5 rounded-2xl shadow-sm border">
+                        <form id="saidaForm" onsubmit="registrarSaida(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Valor (R$)</label>
+                                <input type="text" inputmode="decimal" id="saidaValor" placeholder="0,00" required autocomplete="off"
+                                       class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 font-mono font-bold">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-subtle mb-1">Descrição</label>
+                                <input type="text" id="saidaObs" placeholder="Ex: Resma de papel A4, conta de luz, tinta..." required autocomplete="off"
+                                       class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Categoria</label>
+                                <select id="saidaCategoria" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Saiu de onde?</label>
+                                <select id="saidaForma" class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2">
+                                    <option value="dinheiro">Dinheiro do caixa</option>
+                                    <option value="outro">Pix / Cartão / Conta</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" id="btnSalvarSaida" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow flex items-center justify-center gap-2">
+                                    <span>Adicionar Saída</span>
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-1">
+                            <h3 class="text-sm font-bold">Histórico de saídas</h3>
+                            <div class="no-print flex items-center gap-2">
+                                <input type="month" class="filtro-mes input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                                <button type="button" onclick="window.print()" class="text-subtle p-1.5" title="Imprimir" aria-label="Imprimir"><i class="fa-solid fa-print"></i></button>
+                            </div>
+                        </div>
+                        <div class="text-xs font-mono font-semibold text-subtle mb-2" id="qtdSaidas">A carregar...</div>
+                        <div class="flex flex-wrap gap-2 text-xs font-bold mb-1" id="resumoCategorias"></div>
+                        <div id="listaSaidas"></div>
+                    </section>
+                </div>
+
+                <!-- ============ PÁGINA: CAIXA DO DIA ============ -->
+                <div id="aba-caixa" class="hidden-app space-y-5">
+                    <div class="hidden md:block">
+                        <h2 class="text-2xl font-black tracking-tight">Caixa do dia</h2>
+                        <p class="text-xs text-subtle font-medium">Fechamento e conferência do dinheiro</p>
+                    </div>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                        <div class="flex flex-wrap justify-between items-start gap-3">
+                            <div>
+                                <p class="text-sm font-bold" id="caixaTitulo"></p>
+                                <p class="text-xs text-subtle font-mono" id="caixaContagem"></p>
+                            </div>
+                            <div class="no-print flex items-center gap-2">
+                                <input type="date" id="caixaData" onchange="trocarDiaCaixa()"
+                                       class="input-bg accent-ring border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2">
+                                <button type="button" onclick="window.print()" class="accent-bg text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2">
+                                    <i class="fa-solid fa-print"></i> Imprimir
+                                </button>
+                            </div>
+                        </div>
+                        <div id="caixaResumo"></div>
+                    </section>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                        <h3 class="text-sm font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave accent-text"></i> Conferência do dinheiro na gaveta
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Fundo de caixa (troco inicial)</label>
+                                <input type="text" inputmode="decimal" id="caixaFundo" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
+                                       class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Dinheiro contado agora</label>
+                                <input type="text" inputmode="decimal" id="caixaContado" placeholder="0,00" oninput="atualizarGaveta()" autocomplete="off"
+                                       class="w-full input-bg accent-ring border rounded-xl px-3.5 py-2 text-sm font-mono font-bold focus:outline-none focus:ring-2">
+                            </div>
+                        </div>
+                        <div id="gavetaRes"></div>
+                    </section>
+                </div>
+
+                <!-- ============ PÁGINA: AJUSTES ============ -->
+                <div id="aba-ajustes" class="hidden-app space-y-5">
+                    <div class="hidden md:block">
+                        <h2 class="text-2xl font-black tracking-tight">Ajustes</h2>
+                        <p class="text-xs text-subtle font-medium">Aparência, instalação e conta</p>
+                    </div>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-4">
+                        <h3 class="text-sm font-bold">Aparência</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Fundo</label>
+                                <select id="selectBg" onchange="alterarFundo(this.value)" class="w-full input-bg rounded-xl px-3 py-2 text-sm focus:outline-none cursor-pointer border">
+                                    <option value="branco">Branco</option>
+                                    <option value="preto">Preto</option>
+                                    <option value="marinho">Azul-marinho</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-subtle mb-1">Ícones / Detalhes</label>
+                                <select id="selectAccent" onchange="alterarDetalhes(this.value)" class="w-full input-bg rounded-xl px-3 py-2 text-sm focus:outline-none cursor-pointer border">
+                                    <option value="azul">Azul</option>
+                                    <option value="rosa">Rosa</option>
+                                    <option value="amarelo">Amarelo</option>
+                                    <option value="vinho">Vinho</option>
+                                    <option value="branco">Branco</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="blocoInstalar" class="hidden-app card-bg p-5 rounded-2xl shadow-sm border space-y-3">
+                        <h3 class="text-sm font-bold">Aplicativo</h3>
+                        <p class="text-xs text-subtle">Instale no celular para abrir em tela cheia, como um app.</p>
+                        <button type="button" id="btnInstalar" onclick="instalarApp()" class="accent-bg text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Instalar app
+                        </button>
+                    </section>
+
+                    <section class="card-bg p-5 rounded-2xl shadow-sm border space-y-3">
+                        <h3 class="text-sm font-bold">Conta</h3>
+                        <p class="text-xs text-subtle break-all" id="emailAjustes"></p>
+                        <button type="button" onclick="sair()" class="px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 border" style="color:#dc2626;border-color:#dc2626">
+                            <i class="fa-solid fa-right-from-bracket"></i> Sair da conta
+                        </button>
+                    </section>
+                </div>
+
+            </div>
+        </main>
     </div>
 
     <!-- AVISO COM "DESFAZER" -->
-    <div id="toast" class="hidden-app no-print fixed left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-lg flex items-center justify-between gap-3"
-         style="bottom: calc(4.75rem + env(safe-area-inset-bottom));">
+    <div id="toast" class="hidden-app no-print fixed left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-md px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold shadow-lg flex items-center justify-between gap-3"
+         style="bottom: calc(1rem + env(safe-area-inset-bottom));">
         <span id="toastTexto"></span>
         <button id="toastDesfazer" type="button" onclick="desfazerToast()" class="text-amber-300 font-black uppercase text-xs">Desfazer</button>
     </div>
-
-    <!-- BARRA DE ABAS (parte de baixo, estilo app) -->
-    <nav id="navAbas" class="hidden-app no-print fixed bottom-0 inset-x-0 z-40 card-bg border-t" style="padding-bottom: env(safe-area-inset-bottom);">
-        <div class="max-w-4xl mx-auto grid grid-cols-3">
-            <button type="button" data-aba="vendas" onclick="trocarAba('vendas')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
-                <i class="fa-solid fa-cash-register text-lg"></i> Vendas
-            </button>
-            <button type="button" data-aba="saidas" onclick="trocarAba('saidas')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
-                <i class="fa-solid fa-arrow-trend-down text-lg"></i> Saídas
-            </button>
-            <button type="button" data-aba="caixa" onclick="trocarAba('caixa')" class="aba-btn py-2.5 flex flex-col items-center gap-0.5 text-xs font-bold">
-                <i class="fa-solid fa-calculator text-lg"></i> Caixa
-            </button>
-        </div>
-    </nav>
 
     <script>
         // CONFIGURAÇÃO DO FIREBASE
@@ -493,22 +544,23 @@
         window.addEventListener('beforeinstallprompt', function (e) {
             e.preventDefault();
             eventoInstalar = e;
-            document.getElementById('btnInstalar').classList.remove('hidden-app');
+            document.getElementById('blocoInstalar').classList.remove('hidden-app');
         });
         window.addEventListener('appinstalled', function () {
             eventoInstalar = null;
-            document.getElementById('btnInstalar').classList.add('hidden-app');
+            document.getElementById('blocoInstalar').classList.add('hidden-app');
         });
         async function instalarApp() {
             if (!eventoInstalar) return;
             eventoInstalar.prompt();
             await eventoInstalar.userChoice;
             eventoInstalar = null;
-            document.getElementById('btnInstalar').classList.add('hidden-app');
+            document.getElementById('blocoInstalar').classList.add('hidden-app');
         }
 
         function atualizarAvisoOffline() {
             document.getElementById('avisoOffline').classList.toggle('hidden-app', navigator.onLine);
+            document.getElementById('pontoOffline').classList.toggle('hidden-app', navigator.onLine);
         }
         window.addEventListener('online', atualizarAvisoOffline);
         window.addEventListener('offline', atualizarAvisoOffline);
@@ -529,6 +581,14 @@
             { id: 'outros',     nome: 'Outros' }
         ];
 
+        const PAGINAS = {
+            inicio:  'Início',
+            vendas:  'Vendas',
+            saidas:  'Saídas',
+            caixa:   'Caixa do dia',
+            ajustes: 'Ajustes'
+        };
+
         // ---------- ESTADO ----------
         let vendasMes = [], saidasMes = [];
         let vendasHoje = [], saidasHoje = [];
@@ -536,7 +596,7 @@
         let produtos = [];
         let pagamentoSelecionado = 'pix';
         let qtd = 1;
-        let abaAtual = 'vendas';
+        let abaAtual = 'inicio';
         let hojeChave = '';
         let diaCaixa = '';
         let caixaCalc = null;
@@ -624,7 +684,11 @@
             const hoje = new Date();
             hojeChave = chaveData(hoje);
             diaCaixa = hojeChave;
-            document.getElementById('filtroMes').value = hoje.getFullYear() + '-' + pad(hoje.getMonth() + 1);
+            const mesAtual = hoje.getFullYear() + '-' + pad(hoje.getMonth() + 1);
+            document.querySelectorAll('.filtro-mes').forEach(function (inp) {
+                inp.value = mesAtual;
+                inp.addEventListener('change', function () { trocarMes(inp.value); });
+            });
             document.getElementById('caixaData').value = diaCaixa;
             try { document.getElementById('caixaFundo').value = localStorage.getItem('grafica_fundo') || ''; } catch (e) {}
 
@@ -638,24 +702,26 @@
             if (salvo && FORMAS_PAGAMENTO.some(function (f) { return f.id === salvo; })) pagamentoSelecionado = salvo;
             atualizarBotoesPagamento();
 
-            let abaSalva = 'vendas';
-            try { abaSalva = localStorage.getItem('grafica_aba') || 'vendas'; } catch (e) {}
-            trocarAba(['vendas', 'saidas', 'caixa'].indexOf(abaSalva) >= 0 ? abaSalva : 'vendas');
+            let abaSalva = 'inicio';
+            try { abaSalva = localStorage.getItem('grafica_aba') || 'inicio'; } catch (e) {}
+            trocarAba(Object.prototype.hasOwnProperty.call(PAGINAS, abaSalva) ? abaSalva : 'inicio', true);
 
             setInterval(verificarVirada, 60000);
             document.addEventListener('visibilitychange', function () { if (!document.hidden) verificarVirada(); });
+            // Esc fecha o menu no celular
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharMenu(); });
 
             auth.onAuthStateChanged(function (user) {
                 if (user) {
                     document.getElementById('telaLogin').classList.add('hidden-app');
                     document.getElementById('telaApp').classList.remove('hidden-app');
-                    document.getElementById('navAbas').classList.remove('hidden-app');
-                    document.getElementById('emailLogado').textContent = '• ' + (user.email || '');
+                    document.getElementById('emailLogado').textContent = user.email || '';
+                    document.getElementById('emailAjustes').textContent = 'Conectado como ' + (user.email || '');
                     iniciarEscutas();
                 } else {
                     pararEscutas();
+                    fecharMenu();
                     document.getElementById('telaApp').classList.add('hidden-app');
-                    document.getElementById('navAbas').classList.add('hidden-app');
                     document.getElementById('toast').classList.add('hidden-app');
                     document.getElementById('telaLogin').classList.remove('hidden-app');
                 }
@@ -675,18 +741,33 @@
             if (auth.currentUser) { escutarHoje(); escutarDia(); }
         }
 
-        // ---------- ABAS ----------
-        function trocarAba(aba) {
+        // ---------- MENU LATERAL E PÁGINAS ----------
+        function abrirMenu() {
+            document.getElementById('sidebar').classList.add('aberto');
+            document.getElementById('overlayMenu').classList.remove('hidden-app');
+        }
+
+        function fecharMenu() {
+            document.getElementById('sidebar').classList.remove('aberto');
+            document.getElementById('overlayMenu').classList.add('hidden-app');
+        }
+
+        function trocarAba(aba, semFechar) {
+            if (!Object.prototype.hasOwnProperty.call(PAGINAS, aba)) aba = 'inicio';
             abaAtual = aba;
-            ['vendas', 'saidas', 'caixa'].forEach(function (a) {
+            Object.keys(PAGINAS).forEach(function (a) {
                 document.getElementById('aba-' + a).classList.toggle('hidden-app', a !== aba);
             });
-            document.querySelectorAll('.aba-btn').forEach(function (b) {
+            document.querySelectorAll('.nav-item').forEach(function (b) {
                 const ativo = b.dataset.aba === aba;
-                b.classList.toggle('accent-text', ativo);
+                b.classList.toggle('accent-bg', ativo);
+                b.classList.toggle('text-white', ativo);
                 b.classList.toggle('text-subtle', !ativo);
+                if (ativo) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
             });
+            document.getElementById('tituloPagina').textContent = PAGINAS[aba];
             try { localStorage.setItem('grafica_aba', aba); } catch (e) {}
+            if (!semFechar) fecharMenu();
             window.scrollTo(0, 0);
         }
 
@@ -769,9 +850,14 @@
             produtos = [];
         }
 
+        function mesSelecionado() {
+            const inp = document.querySelector('.filtro-mes');
+            return inp ? inp.value : '';
+        }
+
         function escutarMes() {
             cancelar('vMes'); cancelar('sMes');
-            const valor = document.getElementById('filtroMes').value;
+            const valor = mesSelecionado();
             if (!valor) return;
             const p = valor.split('-').map(Number);
             const inicio = new Date(p[0], p[1] - 1, 1).toISOString();
@@ -809,7 +895,10 @@
             }, tratarErro('produtos'));
         }
 
-        function trocarMes() {
+        // Todos os seletores de mês (Início, Vendas, Saídas) ficam sincronizados
+        function trocarMes(valor) {
+            if (!valor) valor = mesSelecionado();
+            document.querySelectorAll('.filtro-mes').forEach(function (inp) { inp.value = valor; });
             vendasMes = []; saidasMes = [];
             renderMes();
             escutarMes();
@@ -1069,38 +1158,51 @@
                 const k = v.pagamento || 'outro';
                 porPag[k] = (porPag[k] || 0) + toCentavos(v.valor);
             });
-            document.getElementById('resumoPagamento').innerHTML = Object.keys(porPag).map(function (k) {
-                const nome = k === 'outro' ? 'Sem forma' : nomePagamento(k);
-                return '<span class="input-bg border rounded-lg px-2.5 py-1">' + escapeHtml(nome) + ': <span class="font-mono">' + formatarReais(porPag[k]) + '</span></span>';
-            }).join('');
+            const chaves = Object.keys(porPag);
+            document.getElementById('resumoPagamento').innerHTML = chaves.length === 0
+                ? '<span class="text-subtle font-medium">Nenhuma entrada neste mês.</span>'
+                : chaves.map(function (k) {
+                    const nome = k === 'outro' ? 'Sem forma' : nomePagamento(k);
+                    return '<span class="input-bg border rounded-lg px-2.5 py-1">' + escapeHtml(nome) + ': <span class="font-mono">' + formatarReais(porPag[k]) + '</span></span>';
+                }).join('');
 
             renderEntradas();
             renderSaidas();
         }
 
+        // Histórico em lista (cabe no celular, sem rolagem lateral)
+        function itemLista(cls, titulo, detalhe, valorHtml, id) {
+            return '<div class="flex items-center gap-3 py-3 border-b border-subtle">' +
+                '<div class="min-w-0 flex-1">' +
+                    '<div class="font-semibold text-sm break-words">' + titulo + '</div>' +
+                    '<div class="text-[11px] text-subtle font-mono mt-0.5">' + detalhe + '</div>' +
+                '</div>' +
+                '<div class="font-mono font-bold text-sm whitespace-nowrap">' + valorHtml + '</div>' +
+                '<button type="button" data-id="' + escapeHtml(id) + '" class="' + cls + ' no-print text-subtle hover:text-red-500 p-2 -mr-2" title="Excluir" aria-label="Excluir"><i class="fa-solid fa-trash-can"></i></button>' +
+                '</div>';
+        }
+
         function renderEntradas() {
-            const tbody = document.getElementById('tabelaCorpo');
+            const alvo = document.getElementById('listaVendas');
             const lista = vendasMes.slice().sort(function (a, b) { return new Date(b.data) - new Date(a.data); });
             document.getElementById('qtdVendas').textContent = lista.length + ' registo(s)';
 
             if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-subtle text-xs italic">Nenhuma entrada registada neste mês.</td></tr>';
+                alvo.innerHTML = '<div class="py-8 text-center text-subtle text-xs italic">Nenhuma entrada registada neste mês.</div>';
                 return;
             }
 
-            tbody.innerHTML = lista.map(function (v) {
-                return '<tr class="border-subtle border-b hover:opacity-80 transition-opacity">' +
-                    '<td class="py-3 px-3 text-xs text-subtle font-mono">' + formatarDataHora(v.data) + '</td>' +
-                    '<td class="py-3 px-3 font-semibold">' + escapeHtml(v.obs) + '</td>' +
-                    '<td class="py-3 px-3 text-xs text-subtle">' + escapeHtml(nomePagamento(v.pagamento)) + '</td>' +
-                    '<td class="py-3 px-3 text-right font-mono font-bold accent-text">' + formatarReais(toCentavos(v.valor)) + '</td>' +
-                    '<td class="py-3 px-3 text-center no-print"><button data-id="' + escapeHtml(v.id) + '" class="btn-excluir text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir"><i class="fa-solid fa-trash-can"></i></button></td>' +
-                    '</tr>';
+            alvo.innerHTML = lista.map(function (v) {
+                return itemLista('btn-excluir',
+                    escapeHtml(v.obs),
+                    formatarDataHora(v.data) + ' · ' + escapeHtml(nomePagamento(v.pagamento)),
+                    '<span class="accent-text">' + formatarReais(toCentavos(v.valor)) + '</span>',
+                    v.id);
             }).join('');
         }
 
         function renderSaidas() {
-            const tbody = document.getElementById('tabelaSaidas');
+            const alvo = document.getElementById('listaSaidas');
             const lista = saidasMes.slice().sort(function (a, b) { return new Date(b.data) - new Date(a.data); });
             document.getElementById('qtdSaidas').textContent = lista.length + ' registo(s)';
 
@@ -1114,28 +1216,25 @@
             }).join('');
 
             if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-subtle text-xs italic">Nenhuma saída registada neste mês.</td></tr>';
+                alvo.innerHTML = '<div class="py-8 text-center text-subtle text-xs italic">Nenhuma saída registada neste mês.</div>';
                 return;
             }
 
-            tbody.innerHTML = lista.map(function (s) {
-                return '<tr class="border-subtle border-b hover:opacity-80 transition-opacity">' +
-                    '<td class="py-3 px-3 text-xs text-subtle font-mono">' + formatarDataHora(s.data) + '</td>' +
-                    '<td class="py-3 px-3 font-semibold">' + escapeHtml(s.obs) + '</td>' +
-                    '<td class="py-3 px-3 text-xs text-subtle">' + escapeHtml(nomeCategoria(s.categoria)) + '</td>' +
-                    '<td class="py-3 px-3 text-xs text-subtle">' + (s.forma === 'dinheiro' ? 'Caixa (dinheiro)' : 'Pix/Cartão/Conta') + '</td>' +
-                    '<td class="py-3 px-3 text-right font-mono font-bold" style="color:#dc2626">- ' + formatarReais(toCentavos(s.valor)) + '</td>' +
-                    '<td class="py-3 px-3 text-center no-print"><button data-id="' + escapeHtml(s.id) + '" class="btn-excluir-saida text-subtle hover:text-red-500 p-1 transition-colors" title="Excluir"><i class="fa-solid fa-trash-can"></i></button></td>' +
-                    '</tr>';
+            alvo.innerHTML = lista.map(function (s) {
+                return itemLista('btn-excluir-saida',
+                    escapeHtml(s.obs),
+                    formatarDataHora(s.data) + ' · ' + escapeHtml(nomeCategoria(s.categoria)) + ' · ' + (s.forma === 'dinheiro' ? 'do caixa' : 'Pix/Cartão/Conta'),
+                    '<span style="color:#dc2626">- ' + formatarReais(toCentavos(s.valor)) + '</span>',
+                    s.id);
             }).join('');
         }
 
         // ---------- FECHAMENTO DE CAIXA ----------
         function linhaCaixa(rotulo, valor, opts) {
             opts = opts || {};
-            return '<div class="flex justify-between items-center py-2 border-b border-subtle ' + (opts.forte ? 'font-black text-base' : 'font-semibold text-sm') + '">' +
+            return '<div class="flex justify-between items-center gap-3 py-2 border-b border-subtle ' + (opts.forte ? 'font-black text-base' : 'font-semibold text-sm') + '">' +
                 '<span>' + rotulo + '</span>' +
-                '<span class="font-mono"' + (opts.cor ? ' style="color:' + opts.cor + '"' : '') + '>' + valor + '</span></div>';
+                '<span class="font-mono whitespace-nowrap"' + (opts.cor ? ' style="color:' + opts.cor + '"' : '') + '>' + valor + '</span></div>';
         }
 
         function renderCaixa() {
@@ -1213,15 +1312,6 @@
                 }
             }
             alvo.innerHTML = html;
-        }
-
-        function imprimirCaixa() {
-            document.body.classList.add('print-caixa');
-            window.onafterprint = function () {
-                document.body.classList.remove('print-caixa');
-                window.onafterprint = null;
-            };
-            window.print();
         }
 
         // ---------- CLIQUES (botões criados dinamicamente) ----------

@@ -1,6 +1,6 @@
 // Service worker: deixa o app abrir mesmo sem internet.
 // Os dados das vendas ficam no cache do Firestore (enablePersistence).
-const VERSAO = 'grafica-v2';
+const VERSAO = 'grafica-v3';
 const ARQUIVOS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
